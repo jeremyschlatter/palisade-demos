@@ -5,6 +5,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch.nn.functional as F
 import torch
 import tiktoken
+import os
+import openai
 
 # Initialize the models and tokenizers at the top level
 gpt2_model = AutoModelForCausalLM.from_pretrained('gpt2')
@@ -12,6 +14,12 @@ gpt2_tokenizer = AutoTokenizer.from_pretrained('gpt2')
 # llama_model = AutoModelForCausalLM.from_pretrained('meta-llama/Llama-2-70b-hf')
 # llama_tokenizer = AutoTokenizer.from_pretrained('meta-llama/Llama-2-70b-hf')
 enc = tiktoken.get_encoding("gpt2")
+
+# Initialize Hyperbolic client
+hyperbolic_client = openai.OpenAI(
+    api_key=os.getenv('HYPERBOLIC_API_KEY'),
+    base_url="https://api.hyperbolic.xyz/v1",
+)
 
 def get_random_wikipedia_article():
     # URL for random Wikipedia article
@@ -76,6 +84,27 @@ if __name__ == "__main__":
     for prob, idx in zip(top_probs, top_indices):
         token = gpt2_tokenizer.decode(idx)
         print(f"{prob:.3f}: {token}")
+    
+    # Get Llama 3.1 predictions
+    chat_completion = hyperbolic_client.completions.create(
+        model="meta-llama/Meta-Llama-3.1-405B-FP8",
+        prompt=prompt,
+        temperature=0.7,
+        top_p=0.9,
+        max_tokens=1,
+        logprobs=5,
+    )
+    
+    print("\nLlama 3.1:")
+    logprobs = chat_completion.choices[0].logprobs.top_logprobs[0]  # Get the first token's logprobs
+    
+    # Sort by logprob values (highest first)
+    sorted_logprobs = sorted(logprobs.items(), key=lambda x: x[1], reverse=True)
+    
+    for token, logprob in sorted_logprobs:
+        if logprob > -9999:  # Skip the placeholder values
+            prob = torch.exp(torch.tensor(logprob)).item()
+            print(f"{prob:.3f}: {token}")
     
     # # Get Llama-2 predictions
     # inputs = llama_tokenizer(prompt, return_tensors='pt')
