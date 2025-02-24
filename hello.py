@@ -8,6 +8,7 @@ import tiktoken
 import os
 import openai
 
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 # Initialize Hyperbolic client
 hyperbolic_client = openai.OpenAI(
@@ -57,61 +58,131 @@ def get_random_text_sample(text, minimum_sample_length=20):
     
     return words[start_index:]
 
-# Example usage
-if __name__ == "__main__":
-    article = get_random_wikipedia_article()
-    # print(f"Title: {article['title']}\n")
+def step(words, prefix_size):
+    """
+    Generate next token predictions from different models based on a prefix of words.
     
-    sample = get_random_text_sample(article['text'])
-    prompt = ''.join(sample[:10])  # Join with empty string instead of space
+    Args:
+        words: List of tokens/words
+        prefix_size: Number of tokens to use as prefix
     
-    print("Original text:", prompt)
-
+    Returns:
+        Dictionary containing predictions from each model
+    """
+    # Create the prompt from the prefix
+    prefix = ''.join(words[:prefix_size])
+    
+    results = {
+        "prefix": prefix,
+        "next_actual_token": words[prefix_size] if prefix_size < len(words) else "END",
+        "predictions": {}
+    }
+    
     # Get GPT-2 predictions
     gpt2_model = AutoModelForCausalLM.from_pretrained('gpt2')
     gpt2_tokenizer = AutoTokenizer.from_pretrained('gpt2')
-    inputs = gpt2_tokenizer(prompt, return_tensors='pt')
+    inputs = gpt2_tokenizer(prefix, return_tensors='pt')
     with torch.no_grad():
         outputs = gpt2_model(**inputs)
         logits = outputs.logits[0, -1, :]
     probs = F.softmax(logits, dim=-1)
     top_probs, top_indices = torch.topk(probs, 5)
-    print("\nGPT-2:")
+    
+    gpt2_predictions = []
     for prob, idx in zip(top_probs, top_indices):
         token = gpt2_tokenizer.decode(idx)
-        print(f"{prob:.3f}: {token}")
-
+        gpt2_predictions.append({"token": token, "probability": prob.item()})
+    
+    results["predictions"]["gpt2"] = gpt2_predictions
+    
     # Get Llama-2 predictions
-    # llama_model = AutoModelForCausalLM.from_pretrained('meta-llama/Llama-2-70b-hf')
-    # llama_tokenizer = AutoTokenizer.from_pretrained('meta-llama/Llama-2-70b-hf')
-    # inputs = llama_tokenizer(prompt, return_tensors='pt')
-    # with torch.no_grad():
-    #     outputs = llama_model(**inputs)
-    #     logits = outputs.logits[0, -1, :]
-    # probs = F.softmax(logits, dim=-1)
-    # top_probs, top_indices = torch.topk(probs, 5)
-    # print("\nLlama-2:")
-    # for prob, idx in zip(top_probs, top_indices):
-    #     token = llama_tokenizer.decode(idx)
-    #     print(f"{prob:.3f}: {token}")
+    try:
+        raise Exception('not implemented')
+        llama_model = AutoModelForCausalLM.from_pretrained('meta-llama/Llama-2-70b-hf')
+        llama_tokenizer = AutoTokenizer.from_pretrained('meta-llama/Llama-2-70b-hf')
+        inputs = llama_tokenizer(prefix, return_tensors='pt')
+        with torch.no_grad():
+            outputs = llama_model(**inputs)
+            logits = outputs.logits[0, -1, :]
+        probs = F.softmax(logits, dim=-1)
+        top_probs, top_indices = torch.topk(probs, 5)
+        
+        llama2_predictions = []
+        for prob, idx in zip(top_probs, top_indices):
+            token = llama_tokenizer.decode(idx)
+            llama2_predictions.append({"token": token, "probability": prob.item()})
+        
+        results["predictions"]["llama2"] = llama2_predictions
+    except Exception as e:
+        results["predictions"]["llama2"] = [{"error": str(e)}]
     
     # Get Llama 3.1 predictions
-    chat_completion = hyperbolic_client.completions.create(
-        model="meta-llama/Meta-Llama-3.1-405B-FP8",
-        prompt=prompt,
-        temperature=0.7,
-        top_p=0.9,
-        max_tokens=1,
-        logprobs=5,
-    )
+    try:
+        chat_completion = hyperbolic_client.completions.create(
+            model="meta-llama/Meta-Llama-3.1-405B-FP8",
+            prompt=prefix,
+            temperature=0,
+            top_p=1,
+            max_tokens=1,
+            logprobs=5,
+        )
+        
+        logprobs = chat_completion.choices[0].logprobs.top_logprobs[0]
+        
+        # Sort by logprob values (highest first)
+        sorted_logprobs = sorted(logprobs.items(), key=lambda x: x[1], reverse=True)
+        
+        llama3_predictions = []
+        for token, logprob in sorted_logprobs:
+            if logprob > -9999:  # Skip the placeholder values
+                prob = torch.exp(torch.tensor(logprob)).item()
+                llama3_predictions.append({"token": token, "probability": prob})
+        
+        results["predictions"]["llama3"] = llama3_predictions
+    except Exception as e:
+        results["predictions"]["llama3"] = [{"error": str(e)}]
     
-    print("\nLlama 3.1:")
-    logprobs = chat_completion.choices[0].logprobs.top_logprobs[0]  # Get the first token's logprobs
+    return results
+
+# Example usage
+if __name__ == "__main__":
+    article = get_random_wikipedia_article()
     
-    # Sort by logprob values (highest first)
-    sorted_logprobs = sorted(logprobs.items(), key=lambda x: x[1], reverse=True)
+    sample = get_random_text_sample(article['text'], minimum_sample_length=30)
     
-    for token, logprob in sorted_logprobs:
-        if logprob > -9999:  # Skip the placeholder values
-            prob = torch.exp(torch.tensor(logprob)).item()
-            print(f"{prob:.3f}: {token}")
+    # Take 3 steps, starting with a prefix of 10 tokens
+    prefix_size = 10
+    for i in range(3):
+        print(f"\n--- Step {i+1} ---")
+        print(f"Prefix: {''.join(sample[:prefix_size])}")
+        
+        # Get predictions
+        step_results = step(sample, prefix_size)
+        
+        # Print predictions
+        print("\nGPT-2 predictions:")
+        for pred in step_results["predictions"]["gpt2"]:
+            print(f"{pred['probability']:.3f}: {pred['token']}")
+        
+        print("\nLlama-2 predictions:")
+        if "llama2" in step_results["predictions"]:
+            for pred in step_results["predictions"]["llama2"]:
+                if "error" in pred:
+                    print(f"Error: {pred['error']}")
+                else:
+                    print(f"{pred['probability']:.3f}: {pred['token']}")
+        else:
+            print("Not available")
+        
+        print("\nLlama 3.1 predictions:")
+        for pred in step_results["predictions"]["llama3"]:
+            if "error" in pred:
+                print(f"Error: {pred['error']}")
+            else:
+                print(f"{pred['probability']:.3f}: {pred['token']}")
+        
+        # Print actual next token
+        print(f"\nActual next token: {step_results['next_actual_token']}")
+        
+        # Increment prefix size for next step
+        prefix_size += 1
