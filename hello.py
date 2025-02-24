@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import random  # Add this import at the top
 
 def get_random_wikipedia_article():
     # URL for random Wikipedia article
@@ -33,4 +34,17 @@ def get_random_wikipedia_article():
 if __name__ == "__main__":
     article = get_random_wikipedia_article()
     print(f"Title: {article['title']}\n")
-    print(article['text'][:500] + "...")  # Print first 500 characters
+    
+    # Split text into words and get random starting point
+    words = article['text'].split()
+    minimum_sample_length = 10
+    
+    if len(words) > minimum_sample_length:
+        max_start_index = len(words) - minimum_sample_length
+        start_index = random.randint(0, max_start_index)
+    else:
+        start_index = 0
+    
+    # Take up to 10 words from the starting point
+    sample_text = ' '.join(words[start_index:start_index + minimum_sample_length])
+    print(sample_text + "...")
