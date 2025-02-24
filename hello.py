@@ -4,10 +4,12 @@ import random
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch.nn.functional as F
 import torch
+import tiktoken
 
-# Initialize the model and tokenizer at the top level
+# Initialize the models and tokenizers at the top level
 model = AutoModelForCausalLM.from_pretrained('gpt2')
 tokenizer = AutoTokenizer.from_pretrained('gpt2')
+enc = tiktoken.get_encoding("gpt2")
 
 def get_random_wikipedia_article():
     # URL for random Wikipedia article
@@ -37,9 +39,10 @@ def get_random_wikipedia_article():
         'text': text
     }
 
-def get_random_text_sample(text, minimum_sample_length=10):
-    # Split text into words and get random starting point
-    words = text.split()
+def get_random_text_sample(text, minimum_sample_length=20):
+    # Tokenize text using tiktoken and convert back to strings
+    tokens = enc.encode(text)
+    words = [enc.decode([token]) for token in tokens]
     
     if len(words) > minimum_sample_length:
         max_start_index = len(words) - minimum_sample_length
@@ -47,7 +50,6 @@ def get_random_text_sample(text, minimum_sample_length=10):
     else:
         start_index = 0
     
-    # Get the sample starting from start_index
     return words[start_index:]
 
 # Example usage
@@ -56,7 +58,7 @@ if __name__ == "__main__":
     # print(f"Title: {article['title']}\n")
     
     sample = get_random_text_sample(article['text'])
-    prompt = ' '.join(sample[:5])
+    prompt = ''.join(sample[:10])  # Join with empty string instead of space
     
     # Tokenize the prompt
     inputs = tokenizer(prompt, return_tensors='pt')
