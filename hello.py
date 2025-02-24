@@ -11,8 +11,8 @@ import openai
 # Initialize the models and tokenizers at the top level
 gpt2_model = AutoModelForCausalLM.from_pretrained('gpt2')
 gpt2_tokenizer = AutoTokenizer.from_pretrained('gpt2')
-# llama_model = AutoModelForCausalLM.from_pretrained('meta-llama/Llama-2-70b-hf')
-# llama_tokenizer = AutoTokenizer.from_pretrained('meta-llama/Llama-2-70b-hf')
+llama_model = AutoModelForCausalLM.from_pretrained('meta-llama/Llama-2-70b-hf')
+llama_tokenizer = AutoTokenizer.from_pretrained('meta-llama/Llama-2-70b-hf')
 enc = tiktoken.get_encoding("gpt2")
 
 # Initialize Hyperbolic client
@@ -84,6 +84,19 @@ if __name__ == "__main__":
     for prob, idx in zip(top_probs, top_indices):
         token = gpt2_tokenizer.decode(idx)
         print(f"{prob:.3f}: {token}")
+
+    # Get Llama-2 predictions
+    inputs = llama_tokenizer(prompt, return_tensors='pt')
+    with torch.no_grad():
+        outputs = llama_model(**inputs)
+        logits = outputs.logits[0, -1, :]
+    probs = F.softmax(logits, dim=-1)
+    top_probs, top_indices = torch.topk(probs, 5)
+    
+    print("\nLlama-2:")
+    for prob, idx in zip(top_probs, top_indices):
+        token = llama_tokenizer.decode(idx)
+        print(f"{prob:.3f}: {token}")
     
     # Get Llama 3.1 predictions
     chat_completion = hyperbolic_client.completions.create(
@@ -105,16 +118,3 @@ if __name__ == "__main__":
         if logprob > -9999:  # Skip the placeholder values
             prob = torch.exp(torch.tensor(logprob)).item()
             print(f"{prob:.3f}: {token}")
-    
-    # # Get Llama-2 predictions
-    # inputs = llama_tokenizer(prompt, return_tensors='pt')
-    # with torch.no_grad():
-    #     outputs = llama_model(**inputs)
-    #     logits = outputs.logits[0, -1, :]
-    # probs = F.softmax(logits, dim=-1)
-    # top_probs, top_indices = torch.topk(probs, 5)
-    
-    # print("\nLlama-2:")
-    # for prob, idx in zip(top_probs, top_indices):
-    #     token = llama_tokenizer.decode(idx)
-    #     print(f"{prob:.3f}: {token}")
