@@ -164,12 +164,22 @@ if 'article' not in st.session_state:
     st.session_state.show_actual = False
     st.session_state.step_results = None
 
-# Display article title
-st.markdown(f"### Article: {st.session_state.article['title']}")
-
-# Display current prefix
+# Display current prefix with better styling
 prefix_text = ''.join(st.session_state.sample[:st.session_state.prefix_size])
-st.text_area("Current Prefix:", value=prefix_text, height=150, disabled=True, key="prefix_display")
+st.markdown("### What comes next?")
+st.markdown(f"""
+<div style="
+    border: 2px solid grey;
+    border-radius: 5px;
+    padding: 15px;
+    font-family: monospace;
+    font-size: 16px;
+    margin-bottom: 20px;
+    white-space: pre-wrap;
+">
+{prefix_text}
+</div>
+""", unsafe_allow_html=True)
 
 # Buttons for interaction
 col1, col2, col3 = st.columns(3)
@@ -184,16 +194,6 @@ with col2:
         if not st.session_state.step_results:
             st.session_state.step_results = step(st.session_state.sample, st.session_state.prefix_size)
         st.session_state.show_actual = True
-
-with col3:
-    if st.button("New Article", type="secondary"):
-        st.session_state.article = get_random_wikipedia_article()
-        st.session_state.sample = get_random_text_sample(st.session_state.article['text'], minimum_sample_length=30)
-        st.session_state.prefix_size = 10
-        st.session_state.show_predictions = False
-        st.session_state.show_actual = False
-        st.session_state.step_results = None
-        st.rerun()
 
 # Get predictions if needed
 if st.session_state.show_predictions and not st.session_state.step_results:
