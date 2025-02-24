@@ -7,6 +7,10 @@ import torch
 import tiktoken
 import os
 import openai
+from textual.app import App, ComposeResult
+from textual.containers import Container
+from textual.widgets import Button, Static, Header, Footer
+from textual.reactive import reactive
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -144,45 +148,154 @@ def step(words, prefix_size):
     
     return results
 
-# Example usage
-if __name__ == "__main__":
-    article = get_random_wikipedia_article()
+class NextTokenPredictor(App):
+    """A Textual app to predict the next token in a text sequence."""
     
-    sample = get_random_text_sample(article['text'], minimum_sample_length=30)
+    CSS = """
+    #prefix {
+        margin: 1 0;
+        padding: 1;
+        background: $surface;
+        border: solid $accent;
+        height: auto;
+    }
     
-    # Take 3 steps, starting with a prefix of 10 tokens
-    prefix_size = 10
-    for i in range(3):
-        print(f"\n--- Step {i+1} ---")
-        print(f"Prefix: {''.join(sample[:prefix_size])}")
+    #predictions {
+        margin: 1 0;
+        padding: 1;
+        background: $surface;
+        border: solid $accent;
+        height: auto;
+        display: none;
+    }
+    
+    #predictions.visible {
+        display: block;
+    }
+    
+    #actual {
+        margin: 1 0;
+        padding: 1;
+        background: $surface;
+        border: solid $accent;
+        height: auto;
+        display: none;
+    }
+    
+    #actual.visible {
+        display: block;
+    }
+    
+    Button {
+        margin: 1 1;
+    }
+    
+    .model-name {
+        background: $primary;
+        color: $text;
+        padding: 0 1;
+    }
+    """
+    
+    show_predictions = reactive(False)
+    show_actual = reactive(False)
+    
+    def __init__(self):
+        super().__init__()
+        self.article = get_random_wikipedia_article()
+        self.sample = get_random_text_sample(self.article['text'], minimum_sample_length=30)
+        self.prefix_size = 10
+        self.step_results = None
+    
+    def compose(self) -> ComposeResult:
+        """Create child widgets for the app."""
+        yield Header(show_clock=True)
+        yield Container(
+            Static(id="title"),
+            Static(id="prefix"),
+            Button("Show/Hide Predictions", id="toggle_predictions"),
+            Static(id="predictions"),
+            Button("Reveal Next Token & Advance", id="next_token"),
+            Static(id="actual"),
+            Footer(),
+        )
+    
+    def on_mount(self) -> None:
+        """Called when the app is mounted."""
+        self.update_display()
+    
+    def update_display(self) -> None:
+        """Update the display with current data."""
+        # Update title
+        self.query_one("#title").update(f"Article: {self.article['title']}")
+        
+        # Update prefix
+        prefix_text = ''.join(self.sample[:self.prefix_size])
+        self.query_one("#prefix").update(f"Current Prefix:\n{prefix_text}")
         
         # Get predictions
-        step_results = step(sample, prefix_size)
+        self.step_results = step(self.sample, self.prefix_size)
         
-        # Print predictions
-        print("\nGPT-2 predictions:")
-        for pred in step_results["predictions"]["gpt2"]:
-            print(f"{pred['probability']:.3f}: {pred['token']}")
+        # Update predictions
+        predictions_text = "Model Predictions:\n\n"
         
-        print("\nLlama-2 predictions:")
-        if "llama2" in step_results["predictions"]:
-            for pred in step_results["predictions"]["llama2"]:
+        # GPT-2
+        predictions_text += "[b][u]GPT-2:[/u][/b]\n"
+        for pred in self.step_results["predictions"]["gpt2"]:
+            predictions_text += f"{pred['probability']:.3f}: {pred['token']}\n"
+        
+        # Llama-2
+        predictions_text += "\n[b][u]Llama-2:[/u][/b]\n"
+        if "llama2" in self.step_results["predictions"]:
+            for pred in self.step_results["predictions"]["llama2"]:
                 if "error" in pred:
-                    print(f"Error: {pred['error']}")
+                    predictions_text += f"Error: {pred['error']}\n"
                 else:
-                    print(f"{pred['probability']:.3f}: {pred['token']}")
+                    predictions_text += f"{pred['probability']:.3f}: {pred['token']}\n"
         else:
-            print("Not available")
+            predictions_text += "Not available\n"
         
-        print("\nLlama 3.1 predictions:")
-        for pred in step_results["predictions"]["llama3"]:
+        # Llama 3.1
+        predictions_text += "\n[b][u]Llama 3.1:[/u][/b]\n"
+        for pred in self.step_results["predictions"]["llama3"]:
             if "error" in pred:
-                print(f"Error: {pred['error']}")
+                predictions_text += f"Error: {pred['error']}\n"
             else:
-                print(f"{pred['probability']:.3f}: {pred['token']}")
+                predictions_text += f"{pred['probability']:.3f}: {pred['token']}\n"
         
-        # Print actual next token
-        print(f"\nActual next token: {step_results['next_actual_token']}")
+        self.query_one("#predictions").update(predictions_text)
         
-        # Increment prefix size for next step
-        prefix_size += 1
+        # Update actual next token
+        actual_text = f"Actual Next Token: {self.step_results['next_actual_token']}"
+        self.query_one("#actual").update(actual_text)
+        
+        # Apply visibility based on reactive variables
+        predictions = self.query_one("#predictions")
+        predictions.set_class(self.show_predictions, "visible")
+        
+        actual = self.query_one("#actual")
+        actual.set_class(self.show_actual, "visible")
+    
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Called when a button is pressed."""
+        if event.button.id == "toggle_predictions":
+            self.show_predictions = not self.show_predictions
+            predictions = self.query_one("#predictions")
+            predictions.set_class(self.show_predictions, "visible")
+        
+        elif event.button.id == "next_token":
+            self.show_actual = True
+            actual = self.query_one("#actual")
+            actual.set_class(self.show_actual, "visible")
+            
+            # Wait a moment before advancing
+            def advance():
+                self.prefix_size += 1
+                self.show_actual = False
+                self.update_display()
+            
+            self.set_timer(2, advance)
+
+if __name__ == "__main__":
+    app = NextTokenPredictor()
+    app.run()
