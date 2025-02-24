@@ -14,8 +14,8 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 # Set page config
 st.set_page_config(
-    page_title="Next Token Predictor",
-    page_icon="🔮",
+    page_title="LLM Training Game",
+    page_icon="🤖",
     layout="wide",
 )
 
@@ -155,10 +155,6 @@ def step(words, prefix_size):
     
     return results
 
-# App title
-st.title("🔮 Next Token Predictor")
-st.subheader("Compare language model predictions")
-
 # Initialize session state
 if 'article' not in st.session_state:
     st.session_state.article = get_random_wikipedia_article()
@@ -197,7 +193,7 @@ with col3:
         st.session_state.show_predictions = False
         st.session_state.show_actual = False
         st.session_state.step_results = None
-        st.experimental_rerun()
+        st.rerun()
 
 # Get predictions if needed
 if st.session_state.show_predictions and not st.session_state.step_results:
@@ -238,7 +234,7 @@ if st.session_state.show_actual and st.session_state.step_results:
         st.session_state.prefix_size += 1
         st.session_state.show_actual = False
         st.session_state.step_results = None
-        st.experimental_rerun()
+        st.rerun()
 
 # Add some styling
 st.markdown("""
@@ -256,7 +252,3 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-
-# Footer
-st.markdown("---")
-st.markdown("Compare how different language models predict the next token in text from random Wikipedia articles.")
