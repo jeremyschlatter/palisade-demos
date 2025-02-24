@@ -9,6 +9,7 @@ import tiktoken
 import os
 import openai
 import time
+import threading
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -155,14 +156,50 @@ def step(words, prefix_size):
     
     return results
 
+def precompute_steps(words, start_prefix_size, num_steps=10):
+    """Precompute multiple steps and cache the results"""
+    results = {}
+    for i in range(num_steps):
+        current_prefix_size = start_prefix_size + i
+        if current_prefix_size < len(words):
+            results[current_prefix_size] = step(words, current_prefix_size)
+    return results
+
+def background_precompute(words, start_prefix_size, num_steps=10):
+    """Run precomputation in background and update session state when done"""
+    results = precompute_steps(words, start_prefix_size, num_steps)
+    # Update the session state with the precomputed results
+    st.session_state.cached_steps.update(results)
+    st.session_state.precomputing = False
+
 # Initialize session state
 if 'article' not in st.session_state:
     st.session_state.article = get_random_wikipedia_article()
-    st.session_state.sample = get_random_text_sample(st.session_state.article['text'], minimum_sample_length=30)
+    st.session_state.sample = get_random_text_sample(st.session_state.article['text'], minimum_sample_length=40)
     st.session_state.prefix_size = 10
     st.session_state.show_predictions = False
     st.session_state.show_actual = False
     st.session_state.step_results = None
+    st.session_state.cached_steps = {}
+    st.session_state.precomputing = False
+
+# Start precomputation if needed
+if not st.session_state.precomputing and len(st.session_state.cached_steps) < 5:
+    st.session_state.precomputing = True
+    start_prefix = max(st.session_state.prefix_size, max(st.session_state.cached_steps.keys()) + 1) if st.session_state.cached_steps else st.session_state.prefix_size
+    threading.Thread(target=background_precompute, args=(st.session_state.sample, start_prefix, 10)).start()
+
+# Display cache status (for debugging, can be removed in production)
+cache_status = f"Cached steps: {len(st.session_state.cached_steps)} steps ahead"
+st.sidebar.write(cache_status)
+if st.sidebar.button("Force Precompute"):
+    st.session_state.precomputing = True
+    start_prefix = st.session_state.prefix_size
+    threading.Thread(target=background_precompute, args=(st.session_state.sample, start_prefix, 10)).start()
+    st.rerun()
+
+# Display article title in sidebar
+st.sidebar.markdown(f"### Article: {st.session_state.article['title']}")
 
 # Display current prefix with better styling
 prefix_text = ''.join(st.session_state.sample[:st.session_state.prefix_size])
@@ -187,17 +224,40 @@ col1, col2, col3 = st.columns(3)
 with col1:
     if st.button("Show/Hide Predictions", type="primary"):
         st.session_state.show_predictions = not st.session_state.show_predictions
-        st.session_state.step_results = step(st.session_state.sample, st.session_state.prefix_size)
+        # Use cached results if available, otherwise compute
+        if st.session_state.prefix_size in st.session_state.cached_steps:
+            st.session_state.step_results = st.session_state.cached_steps[st.session_state.prefix_size]
+        else:
+            st.session_state.step_results = step(st.session_state.sample, st.session_state.prefix_size)
 
 with col2:
     if st.button("Reveal Next Token & Advance", type="secondary"):
-        if not st.session_state.step_results:
+        # Use cached results if available, otherwise compute
+        if st.session_state.prefix_size in st.session_state.cached_steps:
+            st.session_state.step_results = st.session_state.cached_steps[st.session_state.prefix_size]
+        else:
             st.session_state.step_results = step(st.session_state.sample, st.session_state.prefix_size)
         st.session_state.show_actual = True
 
+with col3:
+    if st.button("New Article"):
+        st.session_state.article = get_random_wikipedia_article()
+        st.session_state.sample = get_random_text_sample(st.session_state.article['text'], minimum_sample_length=40)
+        st.session_state.prefix_size = 10
+        st.session_state.show_predictions = False
+        st.session_state.show_actual = False
+        st.session_state.step_results = None
+        st.session_state.cached_steps = {}
+        st.session_state.precomputing = False
+        st.rerun()
+
 # Get predictions if needed
 if st.session_state.show_predictions and not st.session_state.step_results:
-    st.session_state.step_results = step(st.session_state.sample, st.session_state.prefix_size)
+    # Use cached results if available, otherwise compute
+    if st.session_state.prefix_size in st.session_state.cached_steps:
+        st.session_state.step_results = st.session_state.cached_steps[st.session_state.prefix_size]
+    else:
+        st.session_state.step_results = step(st.session_state.sample, st.session_state.prefix_size)
 
 # Show predictions if toggled
 if st.session_state.show_predictions and st.session_state.step_results:
@@ -233,7 +293,19 @@ if st.session_state.show_actual and st.session_state.step_results:
     if st.button("Continue to Next Token"):
         st.session_state.prefix_size += 1
         st.session_state.show_actual = False
-        st.session_state.step_results = None
+        
+        # Use cached results for the next step if available
+        if st.session_state.prefix_size in st.session_state.cached_steps:
+            st.session_state.step_results = st.session_state.cached_steps[st.session_state.prefix_size]
+        else:
+            st.session_state.step_results = None
+            
+        # Trigger precomputation if cache is getting low
+        if not st.session_state.precomputing and len(st.session_state.cached_steps) < 5:
+            st.session_state.precomputing = True
+            start_prefix = max(st.session_state.prefix_size, max(st.session_state.cached_steps.keys()) + 1) if st.session_state.cached_steps else st.session_state.prefix_size
+            threading.Thread(target=background_precompute, args=(st.session_state.sample, start_prefix, 10)).start()
+            
         st.rerun()
 
 # Add some styling
