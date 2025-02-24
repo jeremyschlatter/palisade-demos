@@ -7,6 +7,7 @@ import torch
 import tiktoken
 import os
 import openai
+import sys
 from textual.app import App, ComposeResult
 from textual.containers import Container
 from textual.widgets import Button, Static, Header, Footer
@@ -195,7 +196,23 @@ class NextTokenPredictor(App):
         color: $text;
         padding: 0 1;
     }
+    
+    #title {
+        background: $boost;
+        color: $text;
+        padding: 1;
+        text-align: center;
+        text-style: bold;
+    }
+    
+    Footer {
+        background: $boost;
+        color: $text;
+    }
     """
+    
+    TITLE = "Next Token Predictor"
+    SUB_TITLE = "Compare language model predictions"
     
     show_predictions = reactive(False)
     show_actual = reactive(False)
@@ -213,10 +230,11 @@ class NextTokenPredictor(App):
         yield Container(
             Static(id="title"),
             Static(id="prefix"),
-            Button("Show/Hide Predictions", id="toggle_predictions"),
+            Button("Show/Hide Predictions", id="toggle_predictions", variant="primary"),
             Static(id="predictions"),
-            Button("Reveal Next Token & Advance", id="next_token"),
+            Button("Reveal Next Token & Advance", id="next_token", variant="success"),
             Static(id="actual"),
+            Button("New Article", id="new_article", variant="warning"),
             Footer(),
         )
     
@@ -295,7 +313,24 @@ class NextTokenPredictor(App):
                 self.update_display()
             
             self.set_timer(2, advance)
+            
+        elif event.button.id == "new_article":
+            self.article = get_random_wikipedia_article()
+            self.sample = get_random_text_sample(self.article['text'], minimum_sample_length=30)
+            self.prefix_size = 10
+            self.show_predictions = False
+            self.show_actual = False
+            self.update_display()
 
 if __name__ == "__main__":
     app = NextTokenPredictor()
-    app.run()
+    
+    # Check if we should run as a web app
+    if len(sys.argv) > 1 and sys.argv[1] == "--web":
+        # Run as a web app
+        port = int(sys.argv[2]) if len(sys.argv) > 2 else 8080
+        app.run(port=port, web_browser=True, log="textual.log")
+    else:
+        # Run as a terminal app
+        print("Running in terminal mode. Use --web to run as a web app.")
+        app.run()
