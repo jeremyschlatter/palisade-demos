@@ -7,8 +7,10 @@ import torch
 import tiktoken
 
 # Initialize the models and tokenizers at the top level
-model = AutoModelForCausalLM.from_pretrained('gpt2')
-tokenizer = AutoTokenizer.from_pretrained('gpt2')
+gpt2_model = AutoModelForCausalLM.from_pretrained('gpt2')
+gpt2_tokenizer = AutoTokenizer.from_pretrained('gpt2')
+# llama_model = AutoModelForCausalLM.from_pretrained('meta-llama/Llama-2-70b-hf')
+# llama_tokenizer = AutoTokenizer.from_pretrained('meta-llama/Llama-2-70b-hf')
 enc = tiktoken.get_encoding("gpt2")
 
 def get_random_wikipedia_article():
@@ -60,22 +62,30 @@ if __name__ == "__main__":
     sample = get_random_text_sample(article['text'])
     prompt = ''.join(sample[:10])  # Join with empty string instead of space
     
-    # Tokenize the prompt
-    inputs = tokenizer(prompt, return_tensors='pt')
+    print("Original text:", prompt)
     
-    # Get model output
+    # Get GPT-2 predictions
+    inputs = gpt2_tokenizer(prompt, return_tensors='pt')
     with torch.no_grad():
-        outputs = model(**inputs)
-        logits = outputs.logits[0, -1, :]  # Get logits for the last position
-        
-    # Convert logits to probabilities
+        outputs = gpt2_model(**inputs)
+        logits = outputs.logits[0, -1, :]
     probs = F.softmax(logits, dim=-1)
-    
-    # Get top 5 tokens and their probabilities
     top_probs, top_indices = torch.topk(probs, 5)
     
-    print("Original text:", prompt)
     print("\nGPT-2:")
     for prob, idx in zip(top_probs, top_indices):
-        token = tokenizer.decode(idx)
+        token = gpt2_tokenizer.decode(idx)
         print(f"{prob:.3f}: {token}")
+    
+    # # Get Llama-2 predictions
+    # inputs = llama_tokenizer(prompt, return_tensors='pt')
+    # with torch.no_grad():
+    #     outputs = llama_model(**inputs)
+    #     logits = outputs.logits[0, -1, :]
+    # probs = F.softmax(logits, dim=-1)
+    # top_probs, top_indices = torch.topk(probs, 5)
+    
+    # print("\nLlama-2:")
+    # for prob, idx in zip(top_probs, top_indices):
+    #     token = llama_tokenizer.decode(idx)
+    #     print(f"{prob:.3f}: {token}")
