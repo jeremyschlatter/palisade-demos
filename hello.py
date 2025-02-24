@@ -30,14 +30,9 @@ def get_random_wikipedia_article():
         'text': text
     }
 
-# Example usage
-if __name__ == "__main__":
-    article = get_random_wikipedia_article()
-    print(f"Title: {article['title']}\n")
-    
+def get_random_text_sample(text, minimum_sample_length=10):
     # Split text into words and get random starting point
-    words = article['text'].split()
-    minimum_sample_length = 10
+    words = text.split()
     
     if len(words) > minimum_sample_length:
         max_start_index = len(words) - minimum_sample_length
@@ -45,6 +40,15 @@ if __name__ == "__main__":
     else:
         start_index = 0
     
-    # Take up to 10 words from the starting point
-    sample_text = ' '.join(words[start_index:start_index + minimum_sample_length])
+    # Get the sample starting from start_index
+    sample = words[start_index:]
+    return sample
+
+# Example usage
+if __name__ == "__main__":
+    article = get_random_wikipedia_article()
+    print(f"Title: {article['title']}\n")
+    
+    sample = get_random_text_sample(article['text'])
+    sample_text = ' '.join(sample[:10])
     print(sample_text + "...")
