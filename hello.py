@@ -1,10 +1,13 @@
 import requests
 from bs4 import BeautifulSoup
 import random
-from transformers import pipeline  # Add this import
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch.nn.functional as F
+import torch
 
-# Initialize the GPT-2 generator at the top level for reuse
-generator = pipeline('text-generation', model='gpt2')
+# Initialize the model and tokenizer at the top level
+model = AutoModelForCausalLM.from_pretrained('gpt2')
+tokenizer = AutoTokenizer.from_pretrained('gpt2')
 
 def get_random_wikipedia_article():
     # URL for random Wikipedia article
@@ -50,13 +53,27 @@ def get_random_text_sample(text, minimum_sample_length=10):
 # Example usage
 if __name__ == "__main__":
     article = get_random_wikipedia_article()
-    print(f"Title: {article['title']}\n")
+    # print(f"Title: {article['title']}\n")
     
     sample = get_random_text_sample(article['text'])
     prompt = ' '.join(sample[:5])
     
-    # Generate completion using GPT-2
-    completion = generator(prompt, max_length=50, num_return_sequences=1)[0]['generated_text']
+    # Tokenize the prompt
+    inputs = tokenizer(prompt, return_tensors='pt')
     
-    print("Original start:", prompt)
-    print("\nCompletion:", completion)
+    # Get model output
+    with torch.no_grad():
+        outputs = model(**inputs)
+        logits = outputs.logits[0, -1, :]  # Get logits for the last position
+        
+    # Convert logits to probabilities
+    probs = F.softmax(logits, dim=-1)
+    
+    # Get top 5 tokens and their probabilities
+    top_probs, top_indices = torch.topk(probs, 5)
+    
+    print("Original text:", prompt)
+    print("\nGPT-2:")
+    for prob, idx in zip(top_probs, top_indices):
+        token = tokenizer.decode(idx)
+        print(f"{prob:.3f}: {token}")
