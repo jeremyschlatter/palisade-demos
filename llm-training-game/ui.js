@@ -29,8 +29,8 @@ const styles = {
   }
 };
 
- // Format probability as percentage with 2 significant figures
- function formatProbability (prob) {
+// Format probability as percentage with 2 significant figures
+function formatProbability (prob) {
   const percentage = prob * 100;
   if (percentage >= 10) {
     return `${Math.round(percentage)}%`;
@@ -40,6 +40,14 @@ const styles = {
     return `${percentage.toFixed(2)}%`;
   }
 };
+
+// Available datasets
+const DATASETS = [
+  'addition.json',
+  'multiply.json',
+  'specification-gaming.json',
+  'wikipedia.json'
+];
 
 // ModelPredictions component to eliminate duplication
 function ModelPredictions({ modelName, subtitle, predictions, showActualToken, actualToken }) {
@@ -114,7 +122,8 @@ function ModelPlaceholder({ modelName, subtitle }) {
 
 // Main App component
 function App() {
-  const [data, setData] = React.useState(null);
+  const [datasets, setDatasets] = React.useState({});
+  const [currentDatasetIndex, setCurrentDatasetIndex] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
   const [currentSampleIndex, setCurrentSampleIndex] = React.useState(0);
@@ -122,28 +131,63 @@ function App() {
   const [showPredictions, setShowPredictions] = React.useState(false);
   const [showActualToken, setShowActualToken] = React.useState(false);
 
-  // Load data on component mount
+  // Load all datasets on component mount
   React.useEffect(() => {
-    fetch('prediction_data.json')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(jsonData => {
-        setData(jsonData);
+    const fetchPromises = DATASETS.map(dataset => 
+      fetch(dataset)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Failed to load ${dataset}`);
+          }
+          return response.json();
+        })
+        .then(data => ({ [dataset]: data }))
+        .catch(err => {
+          console.error(`Error loading ${dataset}:`, err);
+          return { [dataset]: null };
+        })
+    );
+
+    Promise.all(fetchPromises)
+      .then(results => {
+        const mergedData = Object.assign({}, ...results);
+        setDatasets(mergedData);
         setLoading(false);
       })
       .catch(err => {
-        setError(err.message);
+        setError("Failed to load datasets: " + err.message);
         setLoading(false);
       });
   }, []);
 
+  // Get current dataset
+  const getCurrentDataset = () => {
+    const currentDatasetName = DATASETS[currentDatasetIndex];
+    return datasets[currentDatasetName] || null;
+  };
+
+  // Reset state when changing datasets
+  const resetStateForNewDataset = () => {
+    setCurrentSampleIndex(0);
+    setCurrentStepIndex(0);
+    setShowPredictions(false);
+    setShowActualToken(false);
+  };
+
+  // Handle dataset change
+  const handleDatasetChange = (event) => {
+    const newIndex = DATASETS.indexOf(event.target.value);
+    if (newIndex !== -1 && newIndex !== currentDatasetIndex) {
+      setCurrentDatasetIndex(newIndex);
+      resetStateForNewDataset();
+    }
+  };
+
   // Handle keyboard events
   React.useEffect(() => {
     const handleKeyDown = (event) => {
+      const data = getCurrentDataset();
+      
       if (event.key === 'ArrowRight') {
         // Check if we're at the last phase of the last step of the last sample
         const isLastPhase = data && 
@@ -158,6 +202,18 @@ function App() {
         }
       } else if (event.key === 'ArrowLeft') {
         handleBackward();
+      } else if (event.key === 'ArrowUp') {
+        // Move to previous dataset
+        if (currentDatasetIndex > 0) {
+          setCurrentDatasetIndex(currentDatasetIndex - 1);
+          resetStateForNewDataset();
+        }
+      } else if (event.key === 'ArrowDown') {
+        // Move to next dataset
+        if (currentDatasetIndex < DATASETS.length - 1) {
+          setCurrentDatasetIndex(currentDatasetIndex + 1);
+          resetStateForNewDataset();
+        }
       }
     };
 
@@ -165,10 +221,11 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [data, currentSampleIndex, currentStepIndex, showPredictions, showActualToken]);
+  }, [datasets, currentDatasetIndex, currentSampleIndex, currentStepIndex, showPredictions, showActualToken]);
 
   // Handle forward action (progression: show predictions -> show answer -> advance)
   const handleForward = () => {
+    const data = getCurrentDataset();
     if (!data) return;
     
     if (!showPredictions) {
@@ -198,6 +255,7 @@ function App() {
 
   // Handle backward action
   const handleBackward = () => {
+    const data = getCurrentDataset();
     if (!data) return;
     
     if (showActualToken) {
@@ -245,7 +303,7 @@ function App() {
           animation: 'spin 1s linear infinite',
           marginBottom: '15px'
         }} />
-        <p>Loading prediction data...</p>
+        <p>Loading datasets...</p>
       </div>
     );
   }
@@ -263,10 +321,12 @@ function App() {
       }}>
         <h2>Error Loading Data</h2>
         <p>{error}</p>
-        <p>Make sure prediction_data.json is available in the same directory as this HTML file.</p>
+        <p>Make sure the dataset JSON files are available in the same directory as this HTML file.</p>
       </div>
     );
   }
+
+  const data = getCurrentDataset();
 
   // Render when no data is available
   if (!data || data.length === 0) {
@@ -280,7 +340,28 @@ function App() {
         borderLeft: `3px solid ${colors.error}`
       }}>
         <h2>No Data Available</h2>
-        <p>No prediction data was found. Please generate data using generate.py first.</p>
+        <p>No prediction data was found in the selected dataset.</p>
+        <p>Please select a different dataset or generate data using generate.py first.</p>
+        <div style={{ marginTop: '15px' }}>
+          <label htmlFor="dataset-select" style={{ marginRight: '10px' }}>Dataset:</label>
+          <select 
+            id="dataset-select"
+            value={DATASETS[currentDatasetIndex]}
+            onChange={handleDatasetChange}
+            style={{
+              padding: '8px',
+              borderRadius: '3px',
+              border: `1px solid ${colors.border}`,
+              backgroundColor: 'white',
+              color: colors.text,
+              fontSize: '14px'
+            }}
+          >
+            {DATASETS.map(dataset => (
+              <option key={dataset} value={dataset}>{dataset}</option>
+            ))}
+          </select>
+        </div>
       </div>
     );
   }
@@ -369,13 +450,40 @@ function App() {
         >
           ←
         </button>
-        <span style={{
-          fontFamily: 'monospace',
-          fontWeight: 'bold',
-          color: '#777',
+        
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
           flexGrow: 1,
-          textAlign: 'center'
-        }}>{progressText}</span>
+          justifyContent: 'center',
+          gap: '15px'
+        }}>
+          <span style={{
+            fontFamily: 'monospace',
+            fontWeight: 'bold',
+            color: '#777'
+          }}>{progressText}</span>
+          
+          <select 
+            value={DATASETS[currentDatasetIndex]}
+            onChange={handleDatasetChange}
+            style={{
+              padding: '4px 8px',
+              borderRadius: '3px',
+              border: `1px solid ${colors.border}`,
+              backgroundColor: 'white',
+              color: colors.text,
+              fontSize: '13px',
+              fontFamily: 'monospace',
+              cursor: 'pointer'
+            }}
+          >
+            {DATASETS.map(dataset => (
+              <option key={dataset} value={dataset}>{dataset}</option>
+            ))}
+          </select>
+        </div>
+        
         <button 
           style={getNavButtonStyle(true, currentSampleIndex === data.length - 1 && 
                  currentStepIndex === currentSample.steps.length - 1 && 
