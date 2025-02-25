@@ -1,0 +1,557 @@
+[
+  {
+    "article_title": "specification-gaming.txt (section 1)",
+    "sample_words": [
+      " are",
+      " releasing",
+      " our",
+      " experimental",
+      " code",
+      " and",
+      " full",
+      " report",
+      " for",
+      " the",
+      " research",
+      " community",
+      " to",
+      " reproduce",
+      " and",
+      " investigate",
+      " further",
+      ".",
+      "\n",
+      "\n",
+      "Our",
+      " experiment",
+      " is",
+      " as",
+      " follows",
+      ":",
+      " a",
+      " LL",
+      "M",
+      " agent",
+      " plays",
+      " against",
+      " a",
+      " chess",
+      " engine",
+      ",",
+      " using",
+      " shell",
+      " access",
+      " to",
+      " input",
+      " moves",
+      ".",
+      " We",
+      " find",
+      " that",
+      ":",
+      "\n"
+    ],
+    "steps": [
+      {
+        "prefix": " are releasing our experimental code and full report for the",
+        "next_actual_token": " research",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": " next",
+              "probability": 0.07232090085744858
+            },
+            {
+              "token": " release",
+              "probability": 0.06817752867937088
+            },
+            {
+              "token": " first",
+              "probability": 0.06543176621198654
+            },
+            {
+              "token": " upcoming",
+              "probability": 0.03725602105259895
+            },
+            {
+              "token": " public",
+              "probability": 0.03533848002552986
+            }
+          ],
+          "llama3": [
+            {
+              "token": " paper",
+              "probability": 0.14358839392662048
+            },
+            {
+              "token": " following",
+              "probability": 0.0466163232922554
+            },
+            {
+              "token": " project",
+              "probability": 0.04113876074552536
+            },
+            {
+              "token": " ",
+              "probability": 0.03864629194140434
+            },
+            {
+              "token": " task",
+              "probability": 0.030097762122750282
+            }
+          ]
+        }
+      },
+      {
+        "prefix": " are releasing our experimental code and full report for the research",
+        "next_actual_token": " community",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": ".",
+              "probability": 0.21537622809410095
+            },
+            {
+              "token": " project",
+              "probability": 0.09188605099916458
+            },
+            {
+              "token": ",",
+              "probability": 0.061338331550359726
+            },
+            {
+              "token": " to",
+              "probability": 0.04799610748887062
+            },
+            {
+              "token": " in",
+              "probability": 0.033676084131002426
+            }
+          ],
+          "llama3": [
+            {
+              "token": " paper",
+              "probability": 0.2582128047943115
+            },
+            {
+              "token": " project",
+              "probability": 0.2010963261127472
+            },
+            {
+              "token": " work",
+              "probability": 0.06528642028570175
+            },
+            {
+              "token": " on",
+              "probability": 0.05761506408452988
+            },
+            {
+              "token": " community",
+              "probability": 0.04487065598368645
+            }
+          ]
+        }
+      },
+      {
+        "prefix": " are releasing our experimental code and full report for the research community",
+        "next_actual_token": " to",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": ".",
+              "probability": 0.3149438202381134
+            },
+            {
+              "token": " to",
+              "probability": 0.19863712787628174
+            },
+            {
+              "token": ",",
+              "probability": 0.07974456250667572
+            },
+            {
+              "token": " at",
+              "probability": 0.04940773546695709
+            },
+            {
+              "token": " on",
+              "probability": 0.036147747188806534
+            }
+          ],
+          "llama3": [
+            {
+              "token": " to",
+              "probability": 0.3249077796936035
+            },
+            {
+              "token": ".",
+              "probability": 0.2867301106452942
+            },
+            {
+              "token": ".\n",
+              "probability": 0.07249671965837479
+            },
+            {
+              "token": ".\n\n",
+              "probability": 0.05646050348877907
+            },
+            {
+              "token": ",",
+              "probability": 0.03645364195108414
+            }
+          ]
+        }
+      },
+      {
+        "prefix": " are releasing our experimental code and full report for the research community to",
+        "next_actual_token": " reproduce",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": " see",
+              "probability": 0.18699327111244202
+            },
+            {
+              "token": " share",
+              "probability": 0.057738084346055984
+            },
+            {
+              "token": " help",
+              "probability": 0.03453226760029793
+            },
+            {
+              "token": " be",
+              "probability": 0.028366919606924057
+            },
+            {
+              "token": " use",
+              "probability": 0.0269615538418293
+            }
+          ],
+          "llama3": [
+            {
+              "token": " use",
+              "probability": 0.14350272715091705
+            },
+            {
+              "token": " build",
+              "probability": 0.11176003515720367
+            },
+            {
+              "token": " reproduce",
+              "probability": 0.0870388001203537
+            },
+            {
+              "token": " further",
+              "probability": 0.04376585781574249
+            },
+            {
+              "token": " explore",
+              "probability": 0.02825736254453659
+            }
+          ]
+        }
+      },
+      {
+        "prefix": " are releasing our experimental code and full report for the research community to reproduce",
+        "next_actual_token": " and",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": ".",
+              "probability": 0.23729479312896729
+            },
+            {
+              "token": " the",
+              "probability": 0.11176732927560806
+            },
+            {
+              "token": " and",
+              "probability": 0.09588819742202759
+            },
+            {
+              "token": " it",
+              "probability": 0.09090017527341843
+            },
+            {
+              "token": ",",
+              "probability": 0.05984802544116974
+            }
+          ],
+          "llama3": [
+            {
+              "token": " our",
+              "probability": 0.462734580039978
+            },
+            {
+              "token": " and",
+              "probability": 0.21858033537864685
+            },
+            {
+              "token": " the",
+              "probability": 0.19289648532867432
+            },
+            {
+              "token": ",",
+              "probability": 0.029581628739833832
+            },
+            {
+              "token": " results",
+              "probability": 0.023038197308778763
+            }
+          ]
+        }
+      },
+      {
+        "prefix": " are releasing our experimental code and full report for the research community to reproduce and",
+        "next_actual_token": " investigate",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": " test",
+              "probability": 0.12511935830116272
+            },
+            {
+              "token": " share",
+              "probability": 0.08390893042087555
+            },
+            {
+              "token": " improve",
+              "probability": 0.06214115768671036
+            },
+            {
+              "token": " review",
+              "probability": 0.0366269014775753
+            },
+            {
+              "token": " publish",
+              "probability": 0.024908868595957756
+            }
+          ],
+          "llama3": [
+            {
+              "token": " extend",
+              "probability": 0.1898682713508606
+            },
+            {
+              "token": " improve",
+              "probability": 0.1478695571422577
+            },
+            {
+              "token": " build",
+              "probability": 0.10162917524576187
+            },
+            {
+              "token": " verify",
+              "probability": 0.07914888113737106
+            },
+            {
+              "token": " further",
+              "probability": 0.04509767144918442
+            }
+          ]
+        }
+      },
+      {
+        "prefix": " are releasing our experimental code and full report for the research community to reproduce and investigate",
+        "next_actual_token": " further",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": ".",
+              "probability": 0.3488011062145233
+            },
+            {
+              "token": " the",
+              "probability": 0.128722682595253
+            },
+            {
+              "token": " this",
+              "probability": 0.04741625115275383
+            },
+            {
+              "token": ",",
+              "probability": 0.041695237159729004
+            },
+            {
+              "token": " it",
+              "probability": 0.028686000034213066
+            }
+          ],
+          "llama3": [
+            {
+              "token": " our",
+              "probability": 0.3154386579990387
+            },
+            {
+              "token": " the",
+              "probability": 0.20366249978542328
+            },
+            {
+              "token": " further",
+              "probability": 0.1688421368598938
+            },
+            {
+              "token": ".",
+              "probability": 0.06211356073617935
+            },
+            {
+              "token": " more",
+              "probability": 0.03123265877366066
+            }
+          ]
+        }
+      },
+      {
+        "prefix": " are releasing our experimental code and full report for the research community to reproduce and investigate further",
+        "next_actual_token": ".",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": ".",
+              "probability": 0.5863977670669556
+            },
+            {
+              "token": ",",
+              "probability": 0.040645379573106766
+            },
+            {
+              "token": " in",
+              "probability": 0.037699393928050995
+            },
+            {
+              "token": ".\"",
+              "probability": 0.018979601562023163
+            },
+            {
+              "token": " on",
+              "probability": 0.016091318801045418
+            }
+          ],
+          "llama3": [
+            {
+              "token": ".",
+              "probability": 0.3539220094680786
+            },
+            {
+              "token": ".\n",
+              "probability": 0.10140036046504974
+            },
+            {
+              "token": ".\n\n",
+              "probability": 0.10140036046504974
+            },
+            {
+              "token": " on",
+              "probability": 0.07418608665466309
+            },
+            {
+              "token": " in",
+              "probability": 0.04789813980460167
+            }
+          ]
+        }
+      },
+      {
+        "prefix": " are releasing our experimental code and full report for the research community to reproduce and investigate further.",
+        "next_actual_token": "\n",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": "\n",
+              "probability": 0.4055270552635193
+            },
+            {
+              "token": " We",
+              "probability": 0.06810364872217178
+            },
+            {
+              "token": "<|endoftext|>",
+              "probability": 0.04721002280712128
+            },
+            {
+              "token": " The",
+              "probability": 0.043549686670303345
+            },
+            {
+              "token": "\n\n",
+              "probability": 0.02982068434357643
+            }
+          ],
+          "llama3": [
+            {
+              "token": " We",
+              "probability": 0.14831018447875977
+            },
+            {
+              "token": " \n\n",
+              "probability": 0.12295345216989517
+            },
+            {
+              "token": " The",
+              "probability": 0.10193199664354324
+            },
+            {
+              "token": " \n",
+              "probability": 0.089954674243927
+            },
+            {
+              "token": " Our",
+              "probability": 0.06182488054037094
+            }
+          ]
+        }
+      },
+      {
+        "prefix": " are releasing our experimental code and full report for the research community to reproduce and investigate further.\n",
+        "next_actual_token": "\n",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": "\n",
+              "probability": 0.9985840320587158
+            },
+            {
+              "token": "The",
+              "probability": 9.760305692907423e-05
+            },
+            {
+              "token": ".",
+              "probability": 6.328032759483904e-05
+            },
+            {
+              "token": "<|endoftext|>",
+              "probability": 5.2381241403054446e-05
+            },
+            {
+              "token": "\"",
+              "probability": 4.8988862545229495e-05
+            }
+          ],
+          "llama3": [
+            {
+              "token": "",
+              "probability": 0.29680579900741577
+            },
+            {
+              "token": " \n",
+              "probability": 0.10257332772016525
+            },
+            {
+              "token": "#",
+              "probability": 0.05157710984349251
+            },
+            {
+              "token": "We",
+              "probability": 0.040168292820453644
+            },
+            {
+              "token": "The",
+              "probability": 0.03773462027311325
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

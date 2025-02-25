@@ -1,0 +1,120 @@
+[
+  {
+    "article_title": "Math Problem 1",
+    "sample_words": [
+      "4 * 58 = ",
+      "232"
+    ],
+    "steps": [
+      {
+        "prefix": "4 * 58 = ",
+        "next_actual_token": "232",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": "\u00a0",
+              "probability": 0.2504834830760956
+            },
+            {
+              "token": "????",
+              "probability": 0.06233219429850578
+            },
+            {
+              "token": "~~",
+              "probability": 0.054862115532159805
+            },
+            {
+              "token": "0000000000000000",
+              "probability": 0.04514780268073082
+            },
+            {
+              "token": "\ufffd",
+              "probability": 0.037868741899728775
+            }
+          ],
+          "llama3": [
+            {
+              "token": "232",
+              "probability": 0.7318296432495117
+            },
+            {
+              "token": "4",
+              "probability": 0.07713428139686584
+            },
+            {
+              "token": "2",
+              "probability": 0.041287004947662354
+            },
+            {
+              "token": "58",
+              "probability": 0.00921237375587225
+            },
+            {
+              "token": "1",
+              "probability": 0.008129891939461231
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "article_title": "Math Problem 2",
+    "sample_words": [
+      "7 * 89 = ",
+      "623"
+    ],
+    "steps": [
+      {
+        "prefix": "7 * 89 = ",
+        "next_actual_token": "623",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": "\u00a0",
+              "probability": 0.17527709901332855
+            },
+            {
+              "token": "????",
+              "probability": 0.08529070764780045
+            },
+            {
+              "token": "~~",
+              "probability": 0.07119811326265335
+            },
+            {
+              "token": "0000000000000000",
+              "probability": 0.04866693541407585
+            },
+            {
+              "token": "\ufffd",
+              "probability": 0.03475509211421013
+            }
+          ],
+          "llama3": [
+            {
+              "token": "623",
+              "probability": 0.5300832390785217
+            },
+            {
+              "token": "7",
+              "probability": 0.07173895835876465
+            },
+            {
+              "token": "6",
+              "probability": 0.04930541664361954
+            },
+            {
+              "token": "3",
+              "probability": 0.020553557202219963
+            },
+            {
+              "token": "89",
+              "probability": 0.018138449639081955
+            }
+          ]
+        }
+      }
+    ]
+  }
+]
