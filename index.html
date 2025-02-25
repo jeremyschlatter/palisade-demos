@@ -36,58 +36,33 @@
     }
     
     .app-container {
-      max-width: 1000px;
+      max-width: 900px;
       margin: 0 auto;
       background-color: white;
       border-radius: 4px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       overflow: hidden;
+      position: relative;
     }
     
-    .navigation-controls {
+    .status-bar {
       background-color: #f1f3f5;
-      padding: 8px;
+      padding: 8px 12px;
       border-bottom: 1px solid var(--border-color);
+      font-size: 13px;
+      color: #555;
     }
     
-    .sample-navigation, .step-navigation {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    
-    .step-navigation {
-      margin-bottom: 0;
-    }
-    
-    button {
-      background-color: var(--secondary-color);
-      color: white;
-      border: none;
-      padding: 4px 8px;
-      border-radius: 3px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background-color 0.2s;
-    }
-    
-    button:hover:not(:disabled) {
-      background-color: #0e4c6a;
-    }
-    
-    button:disabled {
-      background-color: #b0bec5;
-      cursor: not-allowed;
-    }
-    
-    .sample-info, .step-info {
-      font-weight: bold;
-      font-size: 14px;
+    .status-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
     }
     
     .content-container {
       padding: 15px;
+      position: relative;
     }
     
     .prefix-container {
@@ -104,23 +79,40 @@
       white-space: pre-wrap;
     }
     
-    .action-buttons {
+    .navigation-buttons {
       display: flex;
-      gap: 8px;
-      margin-bottom: 15px;
+      justify-content: space-between;
+      margin-top: 15px;
+      padding: 0 20px;
     }
     
-    .primary-button {
+    .nav-button {
+      background-color: var(--secondary-color);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background-color 0.2s;
+      width: 60px;
+    }
+    
+    .forward-button {
       background-color: var(--primary-color);
     }
     
-    .secondary-button {
-      background-color: var(--secondary-color);
+    .nav-button:hover:not(:disabled) {
+      background-color: #0e4c6a;
     }
     
-    .continue-button {
-      background-color: var(--accent-color);
-      margin-top: 10px;
+    .forward-button:hover:not(:disabled) {
+      background-color: #3a5a8c;
+    }
+    
+    .nav-button:disabled {
+      background-color: #b0bec5;
+      cursor: not-allowed;
     }
     
     .predictions-container, .actual-token-container {
@@ -232,11 +224,6 @@
     @media (max-width: 768px) {
       .models-grid {
         grid-template-columns: 1fr;
-      }
-      
-      .sample-navigation, .step-navigation {
-        flex-direction: column;
-        gap: 8px;
       }
     }
   </style>

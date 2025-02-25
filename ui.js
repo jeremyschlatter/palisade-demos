@@ -1,5 +1,5 @@
 // LLM Prediction Viewer
-// A minimal React application to view model predictions
+// Ultra-minimal React application to view model predictions
 
 // Main App component
 function App() {
@@ -30,60 +30,78 @@ function App() {
       });
   }, []);
 
-  // Handle navigation between samples
-  const goToNextSample = () => {
-    if (data && currentSampleIndex < data.length - 1) {
-      setCurrentSampleIndex(currentSampleIndex + 1);
-      setCurrentStepIndex(0);
+  // Handle keyboard events
+  React.useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'ArrowRight') {
+        handleForward();
+      } else if (event.key === 'ArrowLeft') {
+        handleBackward();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [data, currentSampleIndex, currentStepIndex, showPredictions, showActualToken]);
+
+  // Handle forward action (progression: show predictions -> show answer -> advance)
+  const handleForward = () => {
+    if (!data) return;
+    
+    if (!showPredictions) {
+      // First step: Show predictions
+      setShowPredictions(true);
+    } else if (!showActualToken) {
+      // Second step: Show actual token
+      setShowActualToken(true);
+    } else {
+      // Third step: Advance to next step or sample
+      const currentSample = data[currentSampleIndex];
+      
+      if (currentStepIndex < currentSample.steps.length - 1) {
+        // Move to next step in current sample
+        setCurrentStepIndex(currentStepIndex + 1);
+      } else if (currentSampleIndex < data.length - 1) {
+        // Move to first step of next sample
+        setCurrentSampleIndex(currentSampleIndex + 1);
+        setCurrentStepIndex(0);
+      }
+      
+      // Reset visibility states
       setShowPredictions(false);
       setShowActualToken(false);
     }
   };
 
-  const goToPreviousSample = () => {
-    if (data && currentSampleIndex > 0) {
-      setCurrentSampleIndex(currentSampleIndex - 1);
-      setCurrentStepIndex(0);
-      setShowPredictions(false);
+  // Handle backward action
+  const handleBackward = () => {
+    if (!data) return;
+    
+    if (showActualToken) {
+      // If showing answer, go back to just showing predictions
       setShowActualToken(false);
-    }
-  };
-
-  // Handle navigation between steps
-  const goToNextStep = () => {
-    const currentSample = data[currentSampleIndex];
-    if (currentSample && currentStepIndex < currentSample.steps.length - 1) {
-      setCurrentStepIndex(currentStepIndex + 1);
+    } else if (showPredictions) {
+      // If showing predictions, hide them
       setShowPredictions(false);
-      setShowActualToken(false);
-    }
-  };
-
-  const goToPreviousStep = () => {
-    if (currentStepIndex > 0) {
-      setCurrentStepIndex(currentStepIndex - 1);
-      setShowPredictions(false);
-      setShowActualToken(false);
-    }
-  };
-
-  // Toggle predictions visibility
-  const togglePredictions = () => {
-    setShowPredictions(!showPredictions);
-  };
-
-  // Reveal actual token and prepare for next step
-  const revealAndAdvance = () => {
-    setShowActualToken(true);
-  };
-
-  // Continue to next step after revealing token
-  const continueToNextStep = () => {
-    const currentSample = data[currentSampleIndex];
-    if (currentSample && currentStepIndex < currentSample.steps.length - 1) {
-      setCurrentStepIndex(currentStepIndex + 1);
-      setShowPredictions(false);
-      setShowActualToken(false);
+    } else {
+      // Go to previous step or sample
+      if (currentStepIndex > 0) {
+        // Go to previous step in current sample
+        setCurrentStepIndex(currentStepIndex - 1);
+        // Show the answer for the previous step
+        setShowPredictions(true);
+        setShowActualToken(true);
+      } else if (currentSampleIndex > 0) {
+        // Go to last step of previous sample
+        const prevSample = data[currentSampleIndex - 1];
+        setCurrentSampleIndex(currentSampleIndex - 1);
+        setCurrentStepIndex(prevSample.steps.length - 1);
+        // Show the answer for the last step of previous sample
+        setShowPredictions(true);
+        setShowActualToken(true);
+      }
     }
   };
 
@@ -122,36 +140,18 @@ function App() {
   const currentSample = data[currentSampleIndex];
   const currentStep = currentSample.steps[currentStepIndex];
 
+  // Get minimal progress info
+  const progressText = `${currentSampleIndex + 1}.${currentStepIndex + 1}`;
+
   return (
     React.createElement("div", { className: "app-container" },
-      React.createElement("div", { className: "navigation-controls" },
-        React.createElement("div", { className: "sample-navigation" },
-          React.createElement("button", { onClick: goToPreviousSample, disabled: currentSampleIndex === 0 }, "←"),
-          React.createElement("span", { className: "sample-info" }, 
-            currentSample.article_title, " (", currentSampleIndex + 1, "/", data.length, ")"
-          ),
-          React.createElement("button", { onClick: goToNextSample, disabled: currentSampleIndex === data.length - 1 }, "→")
-        ),
-
-        React.createElement("div", { className: "step-navigation" },
-          React.createElement("button", { onClick: goToPreviousStep, disabled: currentStepIndex === 0 }, "←"),
-          React.createElement("span", { className: "step-info" },
-            "Step ", currentStepIndex + 1, "/", currentSample.steps.length
-          ),
-          React.createElement("button", { onClick: goToNextStep, disabled: currentStepIndex === currentSample.steps.length - 1 }, "→")
-        )
+      React.createElement("div", { className: "status-bar" },
+        React.createElement("span", { className: "status-text" }, progressText)
       ),
 
       React.createElement("div", { className: "content-container" },
         React.createElement("div", { className: "prefix-container" },
           React.createElement("div", { className: "prefix-text" }, currentStep.prefix)
-        ),
-
-        React.createElement("div", { className: "action-buttons" },
-          React.createElement("button", { className: "primary-button", onClick: togglePredictions },
-            showPredictions ? "Hide" : "Show"
-          ),
-          React.createElement("button", { className: "secondary-button", onClick: revealAndAdvance }, "Reveal")
         ),
 
         showPredictions && 
@@ -189,9 +189,23 @@ function App() {
 
         showActualToken && 
           React.createElement("div", { className: "actual-token-container" },
-            React.createElement("div", { className: "actual-token" }, currentStep.next_actual_token),
-            React.createElement("button", { className: "continue-button", onClick: continueToNextStep }, "Next")
-          )
+            React.createElement("div", { className: "actual-token" }, currentStep.next_actual_token)
+          ),
+          
+        React.createElement("div", { className: "navigation-buttons" },
+          React.createElement("button", { 
+            className: "nav-button", 
+            onClick: handleBackward,
+            disabled: currentSampleIndex === 0 && currentStepIndex === 0 && !showPredictions && !showActualToken
+          }, "←"),
+          React.createElement("button", { 
+            className: "nav-button forward-button", 
+            onClick: handleForward,
+            disabled: currentSampleIndex === data.length - 1 && 
+                     currentStepIndex === currentSample.steps.length - 1 && 
+                     showPredictions && showActualToken
+          }, "→")
+        )
       )
     )
   );
