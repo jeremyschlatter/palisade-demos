@@ -1,6 +1,59 @@
 // LLM Prediction Viewer
 // Ultra-minimal React application to view model predictions
 
+// Define colors as variables for reuse
+const colors = {
+  primary: '#4a6fa5',
+  secondary: '#166088',
+  accent: '#4caf50',
+  background: '#f8f9fa',
+  text: '#333',
+  border: '#ddd',
+  hover: '#e9ecef',
+  correct: '#4caf50',
+  error: '#d32f2f',
+  disabled: '#b0bec5'
+};
+
+// Only keep styles that are reused multiple times
+const styles = {
+  // Reused token styles
+  token: {
+    fontFamily: 'monospace',
+    backgroundColor: '#f0f0f0',
+    padding: '1px 4px',
+    borderRadius: '2px'
+  },
+  correctToken: {
+    backgroundColor: 'rgba(76, 175, 80, 0.3)',
+    border: `1px solid ${colors.correct}`
+  },
+  // Reused prediction item styles
+  predictionItem: {
+    padding: '4px',
+    borderBottom: '1px solid #eee',
+    display: 'flex',
+    alignItems: 'center',
+    fontSize: '14px'
+  },
+  predictionItemLast: {
+    borderBottom: 'none'
+  },
+  correctPrediction: {
+    backgroundColor: 'rgba(76, 175, 80, 0.1)'
+  },
+  // Reused model header styles
+  modelTitle: {
+    fontSize: '14px',
+    color: colors.primary
+  },
+  modelSubtitle: {
+    fontSize: '11px',
+    marginBottom: '8px',
+    color: colors.primary
+  }
+};
+
 // Main App component
 function App() {
   const [data, setData] = React.useState(null);
@@ -118,8 +171,22 @@ function App() {
   // Render loading state
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner" />
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh'
+      }}>
+        <div style={{
+          border: '3px solid rgba(0, 0, 0, 0.1)',
+          borderRadius: '50%',
+          borderTop: `3px solid ${colors.primary}`,
+          width: '30px',
+          height: '30px',
+          animation: 'spin 1s linear infinite',
+          marginBottom: '15px'
+        }} />
         <p>Loading prediction data...</p>
       </div>
     );
@@ -128,7 +195,14 @@ function App() {
   // Render error state
   if (error) {
     return (
-      <div className="error-container">
+      <div style={{
+        maxWidth: '500px',
+        margin: '50px auto',
+        padding: '15px',
+        backgroundColor: '#ffebee',
+        borderRadius: '3px',
+        borderLeft: `3px solid ${colors.error}`
+      }}>
         <h2>Error Loading Data</h2>
         <p>{error}</p>
         <p>Make sure prediction_data.json is available in the same directory as this HTML file.</p>
@@ -139,7 +213,14 @@ function App() {
   // Render when no data is available
   if (!data || data.length === 0) {
     return (
-      <div className="error-container">
+      <div style={{
+        maxWidth: '500px',
+        margin: '50px auto',
+        padding: '15px',
+        backgroundColor: '#ffebee',
+        borderRadius: '3px',
+        borderLeft: `3px solid ${colors.error}`
+      }}>
         <h2>No Data Available</h2>
         <p>No prediction data was found. Please generate data using generate.py first.</p>
       </div>
@@ -176,32 +257,88 @@ function App() {
       return (
         <React.Fragment>
           {currentStep.prefix}
-          <span className="filled-blank">{currentStep.next_actual_token}</span>
+          <span style={{
+            backgroundColor: 'rgba(76, 175, 80, 0.2)',
+            borderBottom: `2px solid ${colors.accent}`,
+            padding: '0 2px',
+            display: 'inline-block'
+          }}>{currentStep.next_actual_token}</span>
         </React.Fragment>
       );
     } else {
       return (
         <React.Fragment>
           {currentStep.prefix}
-          <span className="blank-marker">{"\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"}</span>
+          <span style={{
+            borderBottom: '2px solid #333',
+            display: 'inline-block'
+          }}>{"\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"}</span>
         </React.Fragment>
       );
     }
   };
 
+  // Determine button styles based on state
+  const getNavButtonStyle = (isForward, isDisabled) => {
+    const baseStyle = {
+      backgroundColor: isForward ? colors.primary : colors.secondary,
+      color: 'white',
+      border: 'none',
+      padding: '6px 12px',
+      borderRadius: '3px',
+      cursor: isDisabled ? 'not-allowed' : 'pointer',
+      fontSize: '16px',
+      transition: 'background-color 0.2s',
+      width: '40px',
+      height: '32px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    };
+    
+    if (isDisabled) {
+      baseStyle.backgroundColor = colors.disabled;
+    }
+    
+    return baseStyle;
+  };
+
   return (
-    <div className="app-container">
-      <div className="status-bar">
+    <div style={{
+      maxWidth: '900px',
+      margin: '0 auto',
+      backgroundColor: 'white',
+      borderRadius: '4px',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+      overflow: 'hidden',
+      position: 'relative'
+    }}>
+      <div style={{
+        backgroundColor: '#f1f3f5',
+        padding: '8px 15px',
+        borderBottom: `1px solid ${colors.border}`,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
         <button 
-          className="nav-button" 
+          style={getNavButtonStyle(false, currentSampleIndex === 0 && currentStepIndex === 0 && !showPredictions && !showActualToken)}
           onClick={handleBackward}
           disabled={currentSampleIndex === 0 && currentStepIndex === 0 && !showPredictions && !showActualToken}
         >
           ←
         </button>
-        <span className="status-text">{progressText}</span>
+        <span style={{
+          fontFamily: 'monospace',
+          fontWeight: 'bold',
+          color: '#777',
+          flexGrow: 1,
+          textAlign: 'center'
+        }}>{progressText}</span>
         <button 
-          className="nav-button forward-button" 
+          style={getNavButtonStyle(true, currentSampleIndex === data.length - 1 && 
+                 currentStepIndex === currentSample.steps.length - 1 && 
+                 showPredictions && showActualToken)}
           onClick={handleForward}
           disabled={currentSampleIndex === data.length - 1 && 
                    currentStepIndex === currentSample.steps.length - 1 && 
@@ -211,83 +348,177 @@ function App() {
         </button>
       </div>
 
-      <div className="content-container">
-        <div className="prefix-container">
-          <div className="prefix-text">{renderPrefix()}</div>
+      <div style={{ padding: '15px', position: 'relative' }}>
+        <div style={{ marginBottom: '15px' }}>
+          <div style={{
+            fontFamily: 'monospace',
+            fontSize: '16px',
+            backgroundColor: '#f8f9fa',
+            border: '1px solid #ddd',
+            borderRadius: '3px',
+            padding: '10px',
+            whiteSpace: 'pre-wrap'
+          }}>{renderPrefix()}</div>
         </div>
 
-        <div className="predictions-container">
+        <div style={{
+          marginTop: '15px',
+          padding: '10px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '3px',
+          border: `1px solid ${colors.border}`
+        }}>
           {showPredictions ? (
-            <div className="models-grid">
-              <div className="model-predictions">
-                <h3>GPT-2</h3>
-                <h4>1.5B params, 2019</h4>
-                <ul className="prediction-list">
-                  {currentStep.predictions.gpt2.map((pred, index) => (
-                    <li 
-                      key={`gpt2-${index}`} 
-                      className={`prediction-item ${showActualToken && isCorrectPrediction(pred.token) ? "correct-prediction" : ""}`}
-                    >
-                      <span className="probability">{formatProbability(pred.probability)}</span>
-                      <span 
-                        className={`token ${showActualToken && isCorrectPrediction(pred.token) ? "correct-token" : ""}`}
-                      >
-                        {pred.token}
-                      </span>
-                    </li>
-                  ))}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '15px',
+              marginTop: '10px'
+            }}>
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '3px',
+                padding: '10px',
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+              }}>
+                <h3 style={styles.modelTitle}>GPT-2</h3>
+                <h4 style={styles.modelSubtitle}>1.5B params, 2019</h4>
+                <ul style={{ listStyleType: 'none', marginTop: '5px' }}>
+                  {currentStep.predictions.gpt2.map((pred, index) => {
+                    const isCorrect = showActualToken && isCorrectPrediction(pred.token);
+                    const itemStyle = {
+                      ...styles.predictionItem,
+                      ...(index === currentStep.predictions.gpt2.length - 1 ? styles.predictionItemLast : {}),
+                      ...(isCorrect ? styles.correctPrediction : {})
+                    };
+                    const tokenStyle = {
+                      ...styles.token,
+                      ...(isCorrect ? styles.correctToken : {})
+                    };
+                    
+                    return (
+                      <li key={`gpt2-${index}`} style={itemStyle}>
+                        <span style={{
+                          fontWeight: 'bold',
+                          marginRight: '10px',
+                          minWidth: '60px',
+                          color: colors.secondary
+                        }}>{formatProbability(pred.probability)}</span>
+                        <span style={tokenStyle}>{pred.token}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
 
-              <div className="model-predictions">
-                <h3>Llama 3.1</h3>
-                <h4>405B params, 2024</h4>
-                <ul className="prediction-list">
-                  {currentStep.predictions.llama3.map((pred, index) => (
-                    <li 
-                      key={`llama3-${index}`} 
-                      className={`prediction-item ${showActualToken && !pred.error && isCorrectPrediction(pred.token) ? "correct-prediction" : ""}`}
-                    >
-                      {pred.error ? (
-                        <span className="error">{pred.error}</span>
-                      ) : (
-                        <React.Fragment>
-                          <span className="probability">{formatProbability(pred.probability)}</span>
-                          <span 
-                            className={`token ${showActualToken && isCorrectPrediction(pred.token) ? "correct-token" : ""}`}
-                          >
-                            {pred.token}
-                          </span>
-                        </React.Fragment>
-                      )}
-                    </li>
-                  ))}
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '3px',
+                padding: '10px',
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+              }}>
+                <h3 style={styles.modelTitle}>Llama 3.1</h3>
+                <h4 style={styles.modelSubtitle}>405B params, 2024</h4>
+                <ul style={{ listStyleType: 'none', marginTop: '5px' }}>
+                  {currentStep.predictions.llama3.map((pred, index) => {
+                    const isCorrect = showActualToken && !pred.error && isCorrectPrediction(pred.token);
+                    const itemStyle = {
+                      ...styles.predictionItem,
+                      ...(index === currentStep.predictions.llama3.length - 1 ? styles.predictionItemLast : {}),
+                      ...(isCorrect ? styles.correctPrediction : {})
+                    };
+                    const tokenStyle = {
+                      ...styles.token,
+                      ...(isCorrect ? styles.correctToken : {})
+                    };
+                    
+                    return (
+                      <li key={`llama3-${index}`} style={itemStyle}>
+                        {pred.error ? (
+                          <span style={{ color: colors.error, fontStyle: 'italic' }}>{pred.error}</span>
+                        ) : (
+                          <React.Fragment>
+                            <span style={{
+                              fontWeight: 'bold',
+                              marginRight: '10px',
+                              minWidth: '60px',
+                              color: colors.secondary
+                            }}>{formatProbability(pred.probability)}</span>
+                            <span style={tokenStyle}>{pred.token}</span>
+                          </React.Fragment>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             </div>
           ) : (
-            <div className="placeholder-content">
-              <div className="models-grid">
-                <div className="model-predictions">
-                  <h3>GPT-2</h3>
-                  <h4>1.5B params, 2019</h4>
-                  <div className="prediction-placeholder"></div>
+            <div style={{ opacity: 0.4 }}>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                gap: '15px',
+                marginTop: '10px'
+              }}>
+                <div style={{
+                  backgroundColor: 'white',
+                  borderRadius: '3px',
+                  padding: '10px',
+                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                }}>
+                  <h3 style={styles.modelTitle}>GPT-2</h3>
+                  <h4 style={styles.modelSubtitle}>1.5B params, 2019</h4>
+                  <div style={{
+                    height: '150px',
+                    backgroundColor: '#f0f0f0',
+                    borderRadius: '3px',
+                    marginTop: '5px'
+                  }}></div>
                 </div>
-                <div className="model-predictions">
-                  <h3>Llama 3.1</h3>
-                  <h4>405B params, 2024</h4>
-                  <div className="prediction-placeholder"></div>
+                <div style={{
+                  backgroundColor: 'white',
+                  borderRadius: '3px',
+                  padding: '10px',
+                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                }}>
+                  <h3 style={styles.modelTitle}>Llama 3.1</h3>
+                  <h4 style={styles.modelSubtitle}>405B params, 2024</h4>
+                  <div style={{
+                    height: '150px',
+                    backgroundColor: '#f0f0f0',
+                    borderRadius: '3px',
+                    marginTop: '5px'
+                  }}></div>
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        <div className="actual-token-container">
+        <div style={{
+          marginTop: '15px',
+          padding: '10px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '3px',
+          border: `1px solid ${colors.border}`
+        }}>
           {showActualToken ? (
-            <div className="actual-token">{currentStep.next_actual_token}</div>
+            <div style={{
+              fontFamily: 'monospace',
+              fontSize: '20px',
+              backgroundColor: '#e8f5e9',
+              border: `1px solid ${colors.accent}`,
+              padding: '10px',
+              borderRadius: '3px',
+              textAlign: 'center'
+            }}>{currentStep.next_actual_token}</div>
           ) : (
-            <div className="actual-token-placeholder"></div>
+            <div style={{
+              height: '44px',
+              backgroundColor: '#f0f0f0',
+              borderRadius: '3px'
+            }}></div>
           )}
         </div>
       </div>

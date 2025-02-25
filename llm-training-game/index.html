@@ -11,17 +11,7 @@
   <script src="https://unpkg.com/babel-standalone/babel.min.js"></script>
   
   <style>
-    :root {
-      --primary-color: #4a6fa5;
-      --secondary-color: #166088;
-      --accent-color: #4caf50;
-      --background-color: #f8f9fa;
-      --text-color: #333;
-      --border-color: #ddd;
-      --hover-color: #e9ecef;
-      --correct-color: #4caf50;
-    }
-    
+    /* Only keeping essential global styles */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -30,244 +20,13 @@
     
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      line-height: 1.6;
-      color: var(--text-color);
-      background-color: var(--background-color);
-      padding: 10px;
-    }
-    
-    .app-container {
-      max-width: 900px;
-      margin: 0 auto;
-      background-color: white;
-      border-radius: 4px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      position: relative;
-    }
-    
-    .status-bar {
-      background-color: #f1f3f5;
-      padding: 8px 15px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .status-text {
-      font-family: monospace;
-      font-weight: bold;
-      color: #777;
-      flex-grow: 1;
-      text-align: center;
-    }
-    
-    .content-container {
-      padding: 15px;
-      position: relative;
-    }
-    
-    .prefix-container {
-      margin-bottom: 15px;
-    }
-    
-    .prefix-text {
-      font-family: monospace;
-      font-size: 16px;
-      background-color: #f8f9fa;
-      border: 1px solid #ddd;
-      border-radius: 3px;
-      padding: 10px;
-      white-space: pre-wrap;
-    }
-    
-    .blank-marker {
-      border-bottom: 2px solid #333;
-      display: inline-block;
-    }
-    
-    .filled-blank {
-      background-color: rgba(76, 175, 80, 0.2);
-      border-bottom: 2px solid var(--accent-color);
-      padding: 0 2px;
-      display: inline-block;
-    }
-    
-    .nav-button {
-      background-color: var(--secondary-color);
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 3px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background-color 0.2s;
-      width: 40px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .forward-button {
-      background-color: var(--primary-color);
-    }
-    
-    .nav-button:hover:not(:disabled) {
-      background-color: #0e4c6a;
-    }
-    
-    .forward-button:hover:not(:disabled) {
-      background-color: #3a5a8c;
-    }
-    
-    .nav-button:disabled {
-      background-color: #b0bec5;
-      cursor: not-allowed;
-    }
-    
-    .predictions-container, .actual-token-container {
-      margin-top: 15px;
       padding: 10px;
       background-color: #f8f9fa;
-      border-radius: 3px;
-      border: 1px solid var(--border-color);
-    }
-    
-    .models-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 15px;
-      margin-top: 10px;
-    }
-    
-    .model-predictions {
-      background-color: white;
-      border-radius: 3px;
-      padding: 10px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    }
-    
-    .model-predictions h3 {
-      font-size: 14px;
-      color: var(--primary-color);
-    }
-
-    .model-predictions h4 {
-      font-size: 11px;
-      margin-bottom: 8px;
-      color: var(--primary-color);
-    }
-    
-    .prediction-list {
-      list-style-type: none;
-      margin-top: 5px;
-    }
-    
-    .prediction-item {
-      padding: 4px;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      align-items: center;
-      font-size: 14px;
-    }
-    
-    .prediction-item:last-child {
-      border-bottom: none;
-    }
-    
-    .probability {
-      font-weight: bold;
-      margin-right: 10px;
-      min-width: 60px;
-      color: var(--secondary-color);
-    }
-    
-    .token {
-      font-family: monospace;
-      background-color: #f0f0f0;
-      padding: 1px 4px;
-      border-radius: 2px;
-    }
-    
-    .correct-prediction {
-      background-color: rgba(76, 175, 80, 0.1);
-    }
-    
-    .correct-token {
-      background-color: rgba(76, 175, 80, 0.3);
-      border: 1px solid var(--correct-color);
-    }
-    
-    .error {
-      color: #d32f2f;
-      font-style: italic;
-    }
-    
-    .actual-token {
-      font-family: monospace;
-      font-size: 20px;
-      background-color: #e8f5e9;
-      border: 1px solid var(--accent-color);
-      padding: 10px;
-      border-radius: 3px;
-      text-align: center;
-    }
-    
-    .placeholder-content {
-      opacity: 0.4;
-    }
-    
-    .prediction-placeholder {
-      height: 150px;
-      background-color: #f0f0f0;
-      border-radius: 3px;
-      margin-top: 5px;
-    }
-    
-    .actual-token-placeholder {
-      height: 44px;
-      background-color: #f0f0f0;
-      border-radius: 3px;
-    }
-    
-    .loading-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-    
-    .loading-spinner {
-      border: 3px solid rgba(0, 0, 0, 0.1);
-      border-radius: 50%;
-      border-top: 3px solid var(--primary-color);
-      width: 30px;
-      height: 30px;
-      animation: spin 1s linear infinite;
-      margin-bottom: 15px;
     }
     
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
-    }
-    
-    .error-container {
-      max-width: 500px;
-      margin: 50px auto;
-      padding: 15px;
-      background-color: #ffebee;
-      border-radius: 3px;
-      border-left: 3px solid #d32f2f;
-    }
-    
-    @media (max-width: 768px) {
-      .models-grid {
-        grid-template-columns: 1fr;
-      }
     }
   </style>
 </head>
@@ -283,7 +42,7 @@
       .catch(error => {
         console.error('Error loading prediction data:', error);
         document.getElementById('root').innerHTML = `
-          <div class="error-container">
+          <div style="max-width: 500px; margin: 50px auto; padding: 15px; background-color: #ffebee; border-radius: 3px; border-left: 3px solid #d32f2f;">
             <h2>Data File Not Found</h2>
             <p>The prediction_data.json file could not be loaded.</p>
             <p>Please run the following command to generate the data:</p>
