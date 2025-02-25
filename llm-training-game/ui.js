@@ -86,20 +86,20 @@ function appReducer(state, action) {
         ...state,
         datasets: action.payload
       };
-    
+
     case ACTION_TYPES.SET_LOADING:
       return {
         ...state,
         loading: action.payload
       };
-    
+
     case ACTION_TYPES.SET_ERROR:
       return {
         ...state,
         error: action.payload,
         loading: false
       };
-    
+
     case ACTION_TYPES.CHANGE_DATASET:
       return {
         ...state,
@@ -109,7 +109,7 @@ function appReducer(state, action) {
         showPredictions: false,
         showActualToken: false
       };
-    
+
     case ACTION_TYPES.NEXT_DATASET:
       if (state.currentDatasetIndex >= DATASETS.length - 1) {
         return state;
@@ -122,7 +122,7 @@ function appReducer(state, action) {
         showPredictions: false,
         showActualToken: false
       };
-    
+
     case ACTION_TYPES.PREV_DATASET:
       if (state.currentDatasetIndex <= 0) {
         return state;
@@ -135,26 +135,26 @@ function appReducer(state, action) {
         showPredictions: false,
         showActualToken: false
       };
-    
+
     case ACTION_TYPES.SHOW_PREDICTIONS:
       return {
         ...state,
         showPredictions: true
       };
-    
+
     case ACTION_TYPES.SHOW_ACTUAL_TOKEN:
       return {
         ...state,
         showActualToken: true
       };
-    
+
     case ACTION_TYPES.NEXT_STEP: {
       const currentDataset = getCurrentDatasetFromState(state);
       if (!currentDataset) return state;
-      
+
       const currentSample = currentDataset[state.currentSampleIndex];
       if (!currentSample || !currentSample.steps) return state;
-      
+
       if (state.currentStepIndex < currentSample.steps.length - 1) {
         return {
           ...state,
@@ -165,7 +165,7 @@ function appReducer(state, action) {
       }
       return state;
     }
-    
+
     case ACTION_TYPES.PREV_STEP:
       if (state.currentStepIndex > 0) {
         return {
@@ -176,11 +176,11 @@ function appReducer(state, action) {
         };
       }
       return state;
-    
+
     case ACTION_TYPES.NEXT_SAMPLE: {
       const currentDataset = getCurrentDatasetFromState(state);
       if (!currentDataset) return state;
-      
+
       if (state.currentSampleIndex < currentDataset.length - 1) {
         return {
           ...state,
@@ -192,15 +192,15 @@ function appReducer(state, action) {
       }
       return state;
     }
-    
+
     case ACTION_TYPES.PREV_SAMPLE: {
       const currentDataset = getCurrentDatasetFromState(state);
       if (!currentDataset) return state;
-      
+
       if (state.currentSampleIndex > 0) {
         const prevSample = currentDataset[state.currentSampleIndex - 1];
         if (!prevSample || !prevSample.steps) return state;
-        
+
         return {
           ...state,
           currentSampleIndex: state.currentSampleIndex - 1,
@@ -211,7 +211,7 @@ function appReducer(state, action) {
       }
       return state;
     }
-    
+
     case ACTION_TYPES.RESET_STATE:
       return {
         ...state,
@@ -220,7 +220,7 @@ function appReducer(state, action) {
         showPredictions: false,
         showActualToken: false
       };
-    
+
     default:
       return state;
   }
@@ -230,11 +230,11 @@ function appReducer(state, action) {
 function getCurrentDatasetFromState(state) {
   const currentDatasetName = DATASETS[state.currentDatasetIndex];
   const dataset = state.datasets[currentDatasetName];
-  
+
   if (!dataset) {
     console.error(`Dataset not found or is null: ${currentDatasetName}`);
   }
-  
+
   return dataset;
 }
 
@@ -244,7 +244,7 @@ function ModelPredictions({ modelName, subtitle, predictions, showActualToken, a
   const isCorrectPrediction = (token) => {
     return token === actualToken;
   };
-  
+
   return (
     <div style={{
       backgroundColor: 'white',
@@ -257,7 +257,7 @@ function ModelPredictions({ modelName, subtitle, predictions, showActualToken, a
       <ul style={{ listStyleType: 'none', marginTop: '5px' }}>
         {predictions.map((pred, index) => {
           const isCorrect = showActualToken && isCorrectPrediction(pred.token);
-          
+
           return (
             <li key={`${modelName}-${index}`} style={{
               padding: '4px',
@@ -313,7 +313,7 @@ function ModelPlaceholder({ modelName, subtitle }) {
 function App() {
   // Use reducer for state management
   const [state, dispatch] = React.useReducer(appReducer, initialState);
-  
+
   // Destructure state for easier access
   const {
     datasets,
@@ -328,7 +328,7 @@ function App() {
 
   // Load all datasets on component mount
   React.useEffect(() => {
-    const fetchPromises = DATASETS.map(dataset => 
+    const fetchPromises = DATASETS.map(dataset =>
       fetch(dataset)
         .then(response => {
           if (!response.ok) {
@@ -350,9 +350,9 @@ function App() {
         dispatch({ type: ACTION_TYPES.SET_LOADING, payload: false });
       })
       .catch(err => {
-        dispatch({ 
-          type: ACTION_TYPES.SET_ERROR, 
-          payload: "Failed to load datasets: " + err.message 
+        dispatch({
+          type: ACTION_TYPES.SET_ERROR,
+          payload: "Failed to load datasets: " + err.message
         });
       });
   }, []);
@@ -374,17 +374,17 @@ function App() {
   React.useEffect(() => {
     const handleKeyDown = (event) => {
       const data = getCurrentDataset();
-      
+
       if (event.key === 'ArrowRight') {
         // Check if we're at the last phase of the last step of the last sample
-        const isLastPhase = data && 
-                           currentSampleIndex === data.length - 1 && 
-                           data[currentSampleIndex] && 
-                           data[currentSampleIndex].steps && 
-                           currentStepIndex === data[currentSampleIndex].steps.length - 1 && 
-                           showPredictions && 
+        const isLastPhase = data &&
+                           currentSampleIndex === data.length - 1 &&
+                           data[currentSampleIndex] &&
+                           data[currentSampleIndex].steps &&
+                           currentStepIndex === data[currentSampleIndex].steps.length - 1 &&
+                           showPredictions &&
                            showActualToken;
-        
+
         // Only call handleForward if we're not at the last phase
         if (!isLastPhase) {
           handleForward();
@@ -410,7 +410,7 @@ function App() {
   const handleForward = () => {
     const data = getCurrentDataset();
     if (!data) return;
-    
+
     if (!showPredictions) {
       // First step: Show predictions
       dispatch({ type: ACTION_TYPES.SHOW_PREDICTIONS });
@@ -420,13 +420,7 @@ function App() {
     } else {
       // Third step: Advance to next step or sample
       const currentSample = data[currentSampleIndex];
-      
-      // Add defensive check
-      if (!currentSample || !currentSample.steps) {
-        console.error(`Invalid sample or missing steps at index ${currentSampleIndex}`);
-        return;
-      }
-      
+
       if (currentStepIndex < currentSample.steps.length - 1) {
         // Move to next step in current sample
         dispatch({ type: ACTION_TYPES.NEXT_STEP });
@@ -441,7 +435,7 @@ function App() {
   const handleBackward = () => {
     const data = getCurrentDataset();
     if (!data) return;
-    
+
     if (showActualToken) {
       // If showing answer, go back to just showing predictions
       dispatch({ type: ACTION_TYPES.SHOW_PREDICTIONS });
@@ -520,7 +514,7 @@ function App() {
         <p>Please select a different dataset or generate data using generate.py first.</p>
         <div style={{ marginTop: '15px' }}>
           <label htmlFor="dataset-select" style={{ marginRight: '10px' }}>Dataset:</label>
-          <select 
+          <select
             id="dataset-select"
             value={DATASETS[currentDatasetIndex]}
             onChange={handleDatasetChange}
@@ -553,75 +547,8 @@ function App() {
   }
 
   const currentSample = data[currentSampleIndex];
-  
-  // Add defensive check for currentSample
-  if (!currentSample || !currentSample.steps) {
-    console.error(`Invalid sample or missing steps at index ${currentSampleIndex}`);
-    return (
-      <div style={{
-        maxWidth: '500px',
-        margin: '50px auto',
-        padding: '15px',
-        backgroundColor: '#ffebee',
-        borderRadius: '3px',
-        borderLeft: `3px solid ${colors.error}`
-      }}>
-        <h2>Data Format Error</h2>
-        <p>The selected dataset has an invalid format (missing steps property).</p>
-        <p>Please select a different dataset or check the JSON structure.</p>
-        <div style={{ marginTop: '15px' }}>
-          <label htmlFor="dataset-select" style={{ marginRight: '10px' }}>Dataset:</label>
-          <select 
-            id="dataset-select"
-            value={DATASETS[currentDatasetIndex]}
-            onChange={handleDatasetChange}
-            style={{
-              padding: '8px',
-              borderRadius: '3px',
-              border: `1px solid ${colors.border}`,
-              backgroundColor: 'white',
-              color: colors.text,
-              fontSize: '14px'
-            }}
-          >
-            {DATASETS.map(dataset => (
-              <option key={dataset} value={dataset}>{dataset}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-    );
-  }
-  
-  // Ensure step index is valid
-  if (currentStepIndex >= currentSample.steps.length) {
-    console.error(`Step index ${currentStepIndex} out of bounds (steps length: ${currentSample.steps.length})`);
-    setTimeout(() => {
-      dispatch({ type: ACTION_TYPES.RESET_STATE });
-    }, 0);
-    return null; // Return null to prevent rendering until state is updated
-  }
-  
+
   const currentStep = currentSample.steps[currentStepIndex];
-  
-  // Add defensive check for currentStep
-  if (!currentStep) {
-    console.error(`Invalid step at index ${currentStepIndex}`);
-    return (
-      <div style={{
-        maxWidth: '500px',
-        margin: '50px auto',
-        padding: '15px',
-        backgroundColor: '#ffebee',
-        borderRadius: '3px',
-        borderLeft: `3px solid ${colors.error}`
-      }}>
-        <h2>Data Format Error</h2>
-        <p>The selected step is invalid or missing.</p>
-        <p>Please select a different dataset or check the JSON structure.</p>
-      </div>
-    );
-  }
 
   // Get minimal progress info
   const progressText = `${currentSampleIndex + 1}.${currentStepIndex + 1}`;
@@ -670,19 +597,19 @@ function App() {
       alignItems: 'center',
       justifyContent: 'center'
     };
-    
+
     if (isDisabled) {
       baseStyle.backgroundColor = colors.disabled;
     }
-    
+
     return baseStyle;
   };
 
   // Safely check if we're at the last step
-  const isLastStep = currentSample && 
-                    currentSample.steps && 
-                    currentStepIndex === currentSample.steps.length - 1 && 
-                    showPredictions && 
+  const isLastStep = currentSample &&
+                    currentSample.steps &&
+                    currentStepIndex === currentSample.steps.length - 1 &&
+                    showPredictions &&
                     showActualToken;
 
   return (
@@ -703,14 +630,14 @@ function App() {
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
-        <button 
+        <button
           style={getNavButtonStyle(false, currentSampleIndex === 0 && currentStepIndex === 0 && !showPredictions && !showActualToken)}
           onClick={handleBackward}
           disabled={currentSampleIndex === 0 && currentStepIndex === 0 && !showPredictions && !showActualToken}
         >
           ←
         </button>
-        
+
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -723,8 +650,8 @@ function App() {
             fontWeight: 'bold',
             color: '#777'
           }}>{progressText}</span>
-          
-          <select 
+
+          <select
             value={DATASETS[currentDatasetIndex]}
             onChange={handleDatasetChange}
             style={{
@@ -743,8 +670,8 @@ function App() {
             ))}
           </select>
         </div>
-        
-        <button 
+
+        <button
           style={getNavButtonStyle(true, isLastStep && currentSampleIndex === data.length - 1)}
           onClick={handleForward}
           disabled={isLastStep && currentSampleIndex === data.length - 1}
@@ -780,15 +707,15 @@ function App() {
               gap: '15px',
               marginTop: '10px'
             }}>
-              <ModelPredictions 
+              <ModelPredictions
                 modelName="GPT-2"
                 subtitle="1.5B params, 2019"
                 predictions={currentStep.predictions.gpt2}
                 showActualToken={showActualToken}
                 actualToken={currentStep.next_actual_token}
               />
-              
-              <ModelPredictions 
+
+              <ModelPredictions
                 modelName="Llama 3.1"
                 subtitle="405B params, 2024"
                 predictions={currentStep.predictions.llama3}
@@ -804,11 +731,11 @@ function App() {
                 gap: '15px',
                 marginTop: '10px'
               }}>
-                <ModelPlaceholder 
+                <ModelPlaceholder
                   modelName="GPT-2"
                   subtitle="1.5B params, 2019"
                 />
-                <ModelPlaceholder 
+                <ModelPlaceholder
                   modelName="Llama 3.1"
                   subtitle="405B params, 2024"
                 />
@@ -848,4 +775,4 @@ function App() {
 }
 
 // Render the app
-ReactDOM.render(<App />, document.getElementById('root')); 
+ReactDOM.render(<App />, document.getElementById('root'));
