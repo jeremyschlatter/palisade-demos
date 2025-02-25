@@ -156,8 +156,69 @@ def get_text_from_file(file_path):
         print(f"Error reading file: {e}")
         exit(1)
 
-def generate_sample_data(num_samples=10, steps_per_sample=10, min_sample_length=40, file_path=None):
+def process_math_file(file_path):
+    """Process a math file where each line has format 'prefix|answer'"""
+    print(f"Processing math file: {file_path}")
+    samples = []
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+        
+        # Process each line
+        for i, line in enumerate(lines):
+            line = line.strip()
+            if not line or '|' not in line:
+                print(f"Skipping line {i+1}: Invalid format (no '|' separator)")
+                continue
+                
+            # Split by the first '|' character
+            parts = line.split('|', 1)
+            if len(parts) != 2:
+                print(f"Skipping line {i+1}: Invalid format (wrong number of parts)")
+                continue
+                
+            prefix = parts[0]
+            answer = parts[1]
+            
+            # Check if answer is a single token
+            enc = tiktoken.get_encoding("gpt2")
+            answer_tokens = enc.encode(answer)
+            if len(answer_tokens) != 1:
+                print(f"Error on line {i+1}: Answer '{answer}' is not a single token (it's {len(answer_tokens)} tokens)")
+                exit(1)
+            
+            # Create a sample with one step
+            sample = {
+                "article_title": f"Math Problem {i+1}",
+                "sample_words": [prefix, answer],  # Just for reference
+                "steps": [{
+                    "prefix": prefix,
+                    "next_actual_token": answer,
+                    "predictions": {
+                        "gpt2": get_gpt2_predictions(prefix),
+                        "llama3": get_llama3_predictions(prefix)
+                    }
+                }]
+            }
+            
+            samples.append(sample)
+            
+            # Small delay to avoid rate limiting
+            time.sleep(1)
+            
+        return samples
+    except Exception as e:
+        print(f"Error processing math file: {e}")
+        exit(1)
+
+def generate_sample_data(num_samples=10, steps_per_sample=10, min_sample_length=40, file_path=None, mode=None):
     """Generate data for multiple samples with multiple steps each"""
+    
+    # Special handling for math mode
+    if mode == 'math' and file_path:
+        return process_math_file(file_path)
+    
     all_samples = []
     
     for i in tqdm(range(num_samples), desc="Generating samples"):
@@ -210,14 +271,32 @@ def main():
     parser.add_argument('--steps_per_sample', type=int, default=10, help='Number of steps per sample')
     parser.add_argument('--output', type=str, default='prediction_data.json', help='Output JSON file')
     parser.add_argument('--file', type=str, help='Path to a text file to use instead of Wikipedia articles')
+    parser.add_argument('--mode', type=str, choices=['wiki', 'file', 'math'], default='wiki', 
+                        help='Mode to use: wiki (default), file (text file), or math (problems with answers)')
     args = parser.parse_args()
     
-    source_text = "Wikipedia articles"
-    if args.file:
+    # Validate arguments
+    if args.mode == 'math' and not args.file:
+        print("Error: --file argument is required when using --mode=math")
+        exit(1)
+    
+    if args.mode == 'file' and not args.file:
+        print("Error: --file argument is required when using --mode=file")
+        exit(1)
+    
+    # Set file path based on mode
+    file_path = args.file if args.mode in ['file', 'math'] else None
+    
+    # Determine source text description
+    if args.mode == 'wiki':
+        source_text = "Wikipedia articles"
+    elif args.mode == 'file':
         source_text = f"text from {args.file}"
-        
-    print(f"Generating {args.num_samples} samples with {args.steps_per_sample} steps each from {source_text}...")
-    data = generate_sample_data(args.num_samples, args.steps_per_sample, file_path=args.file)
+    else:  # math mode
+        source_text = f"math problems from {args.file}"
+    
+    print(f"Generating data from {source_text}...")
+    data = generate_sample_data(args.num_samples, args.steps_per_sample, file_path=file_path, mode=args.mode)
     
     # Save to JSON file
     with open(args.output, 'w') as f:
