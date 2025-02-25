@@ -206,8 +206,8 @@ function App() {
           <div className="prefix-text">{renderPrefix()}</div>
         </div>
 
-        {showPredictions && (
-          <div className="predictions-container">
+        <div className="predictions-container">
+          {showPredictions ? (
             <div className="models-grid">
               <div className="model-predictions">
                 <h3>GPT-2</h3>
@@ -255,14 +255,31 @@ function App() {
                 </ul>
               </div>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="placeholder-content">
+              <div className="models-grid">
+                <div className="model-predictions">
+                  <h3>GPT-2</h3>
+                  <h4>1.5B params, 2019</h4>
+                  <div className="prediction-placeholder"></div>
+                </div>
+                <div className="model-predictions">
+                  <h3>Llama 3.1</h3>
+                  <h4>405B params, 2024</h4>
+                  <div className="prediction-placeholder"></div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
-        {showActualToken && (
-          <div className="actual-token-container">
+        <div className="actual-token-container">
+          {showActualToken ? (
             <div className="actual-token">{currentStep.next_actual_token}</div>
-          </div>
-        )}
+          ) : (
+            <div className="actual-token-placeholder"></div>
+          )}
+        </div>
       </div>
     </div>
   );
