@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "beautifulsoup4>=4.13.3",
+    "ctransformers>=0.2.27",
     "matplotlib>=3.9.4",
     "numpy>=2.0.2",
     "openai>=1.64.0",
