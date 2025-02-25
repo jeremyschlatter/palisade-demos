@@ -108,31 +108,31 @@ function App() {
   // Render loading state
   if (loading) {
     return (
-      React.createElement("div", { className: "loading-container" },
-        React.createElement("div", { className: "loading-spinner" }),
-        React.createElement("p", null, "Loading prediction data...")
-      )
+      <div className="loading-container">
+        <div className="loading-spinner" />
+        <p>Loading prediction data...</p>
+      </div>
     );
   }
 
   // Render error state
   if (error) {
     return (
-      React.createElement("div", { className: "error-container" },
-        React.createElement("h2", null, "Error Loading Data"),
-        React.createElement("p", null, error),
-        React.createElement("p", null, "Make sure prediction_data.json is available in the same directory as this HTML file.")
-      )
+      <div className="error-container">
+        <h2>Error Loading Data</h2>
+        <p>{error}</p>
+        <p>Make sure prediction_data.json is available in the same directory as this HTML file.</p>
+      </div>
     );
   }
 
   // Render when no data is available
   if (!data || data.length === 0) {
     return (
-      React.createElement("div", { className: "error-container" },
-        React.createElement("h2", null, "No Data Available"),
-        React.createElement("p", null, "No prediction data was found. Please generate data using generate.py first.")
-      )
+      <div className="error-container">
+        <h2>No Data Available</h2>
+        <p>No prediction data was found. Please generate data using generate.py first.</p>
+      </div>
     );
   }
 
@@ -163,96 +163,111 @@ function App() {
   // Render prefix with a styled blank marker
   const renderPrefix = () => {
     if (showActualToken) {
-      return React.createElement(React.Fragment, null,
-        currentStep.prefix,
-        React.createElement("span", { className: "filled-blank" }, currentStep.next_actual_token),
-        React.createElement("span", { className: "blank-marker" }) // 7 non-breaking spaces
+      return (
+        <React.Fragment>
+          {currentStep.prefix}
+          <span className="filled-blank">{currentStep.next_actual_token}</span>
+        </React.Fragment>
       );
     } else {
-      return React.createElement(React.Fragment, null,
-        currentStep.prefix,
-        React.createElement("span", { className: "blank-marker" }, "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0") // 6 non-breaking spaces
+      return (
+        <React.Fragment>
+          {currentStep.prefix}
+          <span className="blank-marker">{"\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"}</span>
+        </React.Fragment>
       );
     }
   };
 
   return (
-    React.createElement("div", { className: "app-container" },
-      React.createElement("div", { className: "status-bar" },
-        React.createElement("span", { className: "status-text" }, progressText)
-      ),
+    <div className="app-container">
+      <div className="status-bar">
+        <span className="status-text">{progressText}</span>
+      </div>
 
-      React.createElement("div", { className: "content-container" },
-        React.createElement("div", { className: "prefix-container" },
-          React.createElement("div", { className: "prefix-text" }, renderPrefix())
-        ),
+      <div className="content-container">
+        <div className="prefix-container">
+          <div className="prefix-text">{renderPrefix()}</div>
+        </div>
 
-        showPredictions && 
-          React.createElement("div", { className: "predictions-container" },
-            React.createElement("div", { className: "models-grid" },
-              React.createElement("div", { className: "model-predictions" },
-                React.createElement("h3", null, "GPT-2 (1.5B, 02/2019)"),
-                React.createElement("ul", { className: "prediction-list" },
-                  currentStep.predictions.gpt2.map((pred, index) => 
-                    React.createElement("li", { 
-                      key: `gpt2-${index}`, 
-                      className: `prediction-item ${showActualToken && isCorrectPrediction(pred.token) ? "correct-prediction" : ""}`
-                    },
-                      React.createElement("span", { className: "probability" }, formatProbability(pred.probability)),
-                      React.createElement("span", { 
-                        className: `token ${showActualToken && isCorrectPrediction(pred.token) ? "correct-token" : ""}`
-                      }, pred.token)
-                    )
-                  )
-                )
-              ),
+        {showPredictions && (
+          <div className="predictions-container">
+            <div className="models-grid">
+              <div className="model-predictions">
+                <h3>GPT-2 (1.5B, 02/2019)</h3>
+                <ul className="prediction-list">
+                  {currentStep.predictions.gpt2.map((pred, index) => (
+                    <li 
+                      key={`gpt2-${index}`} 
+                      className={`prediction-item ${showActualToken && isCorrectPrediction(pred.token) ? "correct-prediction" : ""}`}
+                    >
+                      <span className="probability">{formatProbability(pred.probability)}</span>
+                      <span 
+                        className={`token ${showActualToken && isCorrectPrediction(pred.token) ? "correct-token" : ""}`}
+                      >
+                        {pred.token}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-              React.createElement("div", { className: "model-predictions" },
-                React.createElement("h3", null, "Llama 3.1 (405B, 06/2024)"),
-                React.createElement("ul", { className: "prediction-list" },
-                  currentStep.predictions.llama3.map((pred, index) => 
-                    React.createElement("li", { 
-                      key: `llama3-${index}`, 
-                      className: `prediction-item ${showActualToken && !pred.error && isCorrectPrediction(pred.token) ? "correct-prediction" : ""}`
-                    },
-                      pred.error 
-                        ? React.createElement("span", { className: "error" }, pred.error)
-                        : React.createElement(React.Fragment, null,
-                            React.createElement("span", { className: "probability" }, formatProbability(pred.probability)),
-                            React.createElement("span", { 
-                              className: `token ${showActualToken && isCorrectPrediction(pred.token) ? "correct-token" : ""}`
-                            }, pred.token)
-                          )
-                    )
-                  )
-                )
-              )
-            )
-          ),
+              <div className="model-predictions">
+                <h3>Llama 3.1 (405B, 06/2024)</h3>
+                <ul className="prediction-list">
+                  {currentStep.predictions.llama3.map((pred, index) => (
+                    <li 
+                      key={`llama3-${index}`} 
+                      className={`prediction-item ${showActualToken && !pred.error && isCorrectPrediction(pred.token) ? "correct-prediction" : ""}`}
+                    >
+                      {pred.error ? (
+                        <span className="error">{pred.error}</span>
+                      ) : (
+                        <React.Fragment>
+                          <span className="probability">{formatProbability(pred.probability)}</span>
+                          <span 
+                            className={`token ${showActualToken && isCorrectPrediction(pred.token) ? "correct-token" : ""}`}
+                          >
+                            {pred.token}
+                          </span>
+                        </React.Fragment>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
 
-        showActualToken && 
-          React.createElement("div", { className: "actual-token-container" },
-            React.createElement("div", { className: "actual-token" }, currentStep.next_actual_token)
-          ),
+        {showActualToken && (
+          <div className="actual-token-container">
+            <div className="actual-token">{currentStep.next_actual_token}</div>
+          </div>
+        )}
           
-        React.createElement("div", { className: "navigation-buttons" },
-          React.createElement("button", { 
-            className: "nav-button", 
-            onClick: handleBackward,
-            disabled: currentSampleIndex === 0 && currentStepIndex === 0 && !showPredictions && !showActualToken
-          }, "←"),
-          React.createElement("button", { 
-            className: "nav-button forward-button", 
-            onClick: handleForward,
-            disabled: currentSampleIndex === data.length - 1 && 
+        <div className="navigation-buttons">
+          <button 
+            className="nav-button" 
+            onClick={handleBackward}
+            disabled={currentSampleIndex === 0 && currentStepIndex === 0 && !showPredictions && !showActualToken}
+          >
+            ←
+          </button>
+          <button 
+            className="nav-button forward-button" 
+            onClick={handleForward}
+            disabled={currentSampleIndex === data.length - 1 && 
                      currentStepIndex === currentSample.steps.length - 1 && 
-                     showPredictions && showActualToken
-          }, "→")
-        )
-      )
-    )
+                     showPredictions && showActualToken}
+          >
+            →
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
 // Render the app
-ReactDOM.render(React.createElement(App), document.getElementById('root')); 
+ReactDOM.render(<App />, document.getElementById('root')); 
