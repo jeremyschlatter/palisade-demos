@@ -49,6 +49,195 @@ const DATASETS = [
   'wikipedia.json'
 ];
 
+// Define action types for reducer
+const ACTION_TYPES = {
+  SET_DATASETS: 'SET_DATASETS',
+  SET_LOADING: 'SET_LOADING',
+  SET_ERROR: 'SET_ERROR',
+  CHANGE_DATASET: 'CHANGE_DATASET',
+  SHOW_PREDICTIONS: 'SHOW_PREDICTIONS',
+  SHOW_ACTUAL_TOKEN: 'SHOW_ACTUAL_TOKEN',
+  NEXT_STEP: 'NEXT_STEP',
+  PREV_STEP: 'PREV_STEP',
+  NEXT_SAMPLE: 'NEXT_SAMPLE',
+  PREV_SAMPLE: 'PREV_SAMPLE',
+  RESET_STATE: 'RESET_STATE',
+  NEXT_DATASET: 'NEXT_DATASET',
+  PREV_DATASET: 'PREV_DATASET'
+};
+
+// Initial state
+const initialState = {
+  datasets: {},
+  currentDatasetIndex: 0,
+  loading: true,
+  error: null,
+  currentSampleIndex: 0,
+  currentStepIndex: 0,
+  showPredictions: false,
+  showActualToken: false
+};
+
+// Reducer function to handle all state transitions
+function appReducer(state, action) {
+  switch (action.type) {
+    case ACTION_TYPES.SET_DATASETS:
+      return {
+        ...state,
+        datasets: action.payload
+      };
+    
+    case ACTION_TYPES.SET_LOADING:
+      return {
+        ...state,
+        loading: action.payload
+      };
+    
+    case ACTION_TYPES.SET_ERROR:
+      return {
+        ...state,
+        error: action.payload,
+        loading: false
+      };
+    
+    case ACTION_TYPES.CHANGE_DATASET:
+      return {
+        ...state,
+        currentDatasetIndex: action.payload,
+        currentSampleIndex: 0,
+        currentStepIndex: 0,
+        showPredictions: false,
+        showActualToken: false
+      };
+    
+    case ACTION_TYPES.NEXT_DATASET:
+      if (state.currentDatasetIndex >= DATASETS.length - 1) {
+        return state;
+      }
+      return {
+        ...state,
+        currentDatasetIndex: state.currentDatasetIndex + 1,
+        currentSampleIndex: 0,
+        currentStepIndex: 0,
+        showPredictions: false,
+        showActualToken: false
+      };
+    
+    case ACTION_TYPES.PREV_DATASET:
+      if (state.currentDatasetIndex <= 0) {
+        return state;
+      }
+      return {
+        ...state,
+        currentDatasetIndex: state.currentDatasetIndex - 1,
+        currentSampleIndex: 0,
+        currentStepIndex: 0,
+        showPredictions: false,
+        showActualToken: false
+      };
+    
+    case ACTION_TYPES.SHOW_PREDICTIONS:
+      return {
+        ...state,
+        showPredictions: true
+      };
+    
+    case ACTION_TYPES.SHOW_ACTUAL_TOKEN:
+      return {
+        ...state,
+        showActualToken: true
+      };
+    
+    case ACTION_TYPES.NEXT_STEP: {
+      const currentDataset = getCurrentDatasetFromState(state);
+      if (!currentDataset) return state;
+      
+      const currentSample = currentDataset[state.currentSampleIndex];
+      if (!currentSample || !currentSample.steps) return state;
+      
+      if (state.currentStepIndex < currentSample.steps.length - 1) {
+        return {
+          ...state,
+          currentStepIndex: state.currentStepIndex + 1,
+          showPredictions: false,
+          showActualToken: false
+        };
+      }
+      return state;
+    }
+    
+    case ACTION_TYPES.PREV_STEP:
+      if (state.currentStepIndex > 0) {
+        return {
+          ...state,
+          currentStepIndex: state.currentStepIndex - 1,
+          showPredictions: true,
+          showActualToken: true
+        };
+      }
+      return state;
+    
+    case ACTION_TYPES.NEXT_SAMPLE: {
+      const currentDataset = getCurrentDatasetFromState(state);
+      if (!currentDataset) return state;
+      
+      if (state.currentSampleIndex < currentDataset.length - 1) {
+        return {
+          ...state,
+          currentSampleIndex: state.currentSampleIndex + 1,
+          currentStepIndex: 0,
+          showPredictions: false,
+          showActualToken: false
+        };
+      }
+      return state;
+    }
+    
+    case ACTION_TYPES.PREV_SAMPLE: {
+      const currentDataset = getCurrentDatasetFromState(state);
+      if (!currentDataset) return state;
+      
+      if (state.currentSampleIndex > 0) {
+        const prevSample = currentDataset[state.currentSampleIndex - 1];
+        if (!prevSample || !prevSample.steps) return state;
+        
+        return {
+          ...state,
+          currentSampleIndex: state.currentSampleIndex - 1,
+          currentStepIndex: prevSample.steps.length - 1,
+          showPredictions: true,
+          showActualToken: true
+        };
+      }
+      return state;
+    }
+    
+    case ACTION_TYPES.RESET_STATE:
+      return {
+        ...state,
+        currentSampleIndex: 0,
+        currentStepIndex: 0,
+        showPredictions: false,
+        showActualToken: false
+      };
+    
+    default:
+      return state;
+  }
+}
+
+// Helper function to get current dataset from state
+function getCurrentDatasetFromState(state) {
+  const currentDatasetName = DATASETS[state.currentDatasetIndex];
+  const dataset = state.datasets[currentDatasetName];
+  
+  if (!dataset) {
+    console.error(`Dataset not found or is null: ${currentDatasetName}`);
+  }
+  
+  return dataset;
+}
+
 // ModelPredictions component to eliminate duplication
 function ModelPredictions({ modelName, subtitle, predictions, showActualToken, actualToken }) {
   // Check if a prediction matches the actual token
@@ -122,14 +311,20 @@ function ModelPlaceholder({ modelName, subtitle }) {
 
 // Main App component
 function App() {
-  const [datasets, setDatasets] = React.useState({});
-  const [currentDatasetIndex, setCurrentDatasetIndex] = React.useState(0);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(null);
-  const [currentSampleIndex, setCurrentSampleIndex] = React.useState(0);
-  const [currentStepIndex, setCurrentStepIndex] = React.useState(0);
-  const [showPredictions, setShowPredictions] = React.useState(false);
-  const [showActualToken, setShowActualToken] = React.useState(false);
+  // Use reducer for state management
+  const [state, dispatch] = React.useReducer(appReducer, initialState);
+  
+  // Destructure state for easier access
+  const {
+    datasets,
+    currentDatasetIndex,
+    loading,
+    error,
+    currentSampleIndex,
+    currentStepIndex,
+    showPredictions,
+    showActualToken
+  } = state;
 
   // Load all datasets on component mount
   React.useEffect(() => {
@@ -151,43 +346,27 @@ function App() {
     Promise.all(fetchPromises)
       .then(results => {
         const mergedData = Object.assign({}, ...results);
-        setDatasets(mergedData);
-        setLoading(false);
+        dispatch({ type: ACTION_TYPES.SET_DATASETS, payload: mergedData });
+        dispatch({ type: ACTION_TYPES.SET_LOADING, payload: false });
       })
       .catch(err => {
-        setError("Failed to load datasets: " + err.message);
-        setLoading(false);
+        dispatch({ 
+          type: ACTION_TYPES.SET_ERROR, 
+          payload: "Failed to load datasets: " + err.message 
+        });
       });
   }, []);
 
   // Get current dataset
   const getCurrentDataset = () => {
-    const currentDatasetName = DATASETS[currentDatasetIndex];
-    const dataset = datasets[currentDatasetName];
-    
-    if (!dataset) {
-      console.error(`Dataset not found or is null: ${currentDatasetName}`);
-      // You could also set an error state here if you want to display it in the UI
-      // setError(`Dataset not found: ${currentDatasetName}`);
-    }
-    
-    return dataset;
-  };
-
-  // Reset state when changing datasets
-  const resetStateForNewDataset = () => {
-    setCurrentSampleIndex(0);
-    setCurrentStepIndex(0);
-    setShowPredictions(false);
-    setShowActualToken(false);
+    return getCurrentDatasetFromState(state);
   };
 
   // Handle dataset change
   const handleDatasetChange = (event) => {
     const newIndex = DATASETS.indexOf(event.target.value);
     if (newIndex !== -1 && newIndex !== currentDatasetIndex) {
-      setCurrentDatasetIndex(newIndex);
-      resetStateForNewDataset();
+      dispatch({ type: ACTION_TYPES.CHANGE_DATASET, payload: newIndex });
     }
   };
 
@@ -214,16 +393,10 @@ function App() {
         handleBackward();
       } else if (event.key === 'ArrowUp') {
         // Move to previous dataset
-        if (currentDatasetIndex > 0) {
-          setCurrentDatasetIndex(currentDatasetIndex - 1);
-          resetStateForNewDataset();
-        }
+        dispatch({ type: ACTION_TYPES.PREV_DATASET });
       } else if (event.key === 'ArrowDown') {
         // Move to next dataset
-        if (currentDatasetIndex < DATASETS.length - 1) {
-          setCurrentDatasetIndex(currentDatasetIndex + 1);
-          resetStateForNewDataset();
-        }
+        dispatch({ type: ACTION_TYPES.NEXT_DATASET });
       }
     };
 
@@ -240,10 +413,10 @@ function App() {
     
     if (!showPredictions) {
       // First step: Show predictions
-      setShowPredictions(true);
+      dispatch({ type: ACTION_TYPES.SHOW_PREDICTIONS });
     } else if (!showActualToken) {
       // Second step: Show actual token
-      setShowActualToken(true);
+      dispatch({ type: ACTION_TYPES.SHOW_ACTUAL_TOKEN });
     } else {
       // Third step: Advance to next step or sample
       const currentSample = data[currentSampleIndex];
@@ -256,16 +429,11 @@ function App() {
       
       if (currentStepIndex < currentSample.steps.length - 1) {
         // Move to next step in current sample
-        setCurrentStepIndex(currentStepIndex + 1);
+        dispatch({ type: ACTION_TYPES.NEXT_STEP });
       } else if (currentSampleIndex < data.length - 1) {
         // Move to first step of next sample
-        setCurrentSampleIndex(currentSampleIndex + 1);
-        setCurrentStepIndex(0);
+        dispatch({ type: ACTION_TYPES.NEXT_SAMPLE });
       }
-      
-      // Reset visibility states
-      setShowPredictions(false);
-      setShowActualToken(false);
     }
   };
 
@@ -276,33 +444,18 @@ function App() {
     
     if (showActualToken) {
       // If showing answer, go back to just showing predictions
-      setShowActualToken(false);
+      dispatch({ type: ACTION_TYPES.SHOW_PREDICTIONS });
     } else if (showPredictions) {
       // If showing predictions, hide them
-      setShowPredictions(false);
+      dispatch({ type: ACTION_TYPES.RESET_STATE });
     } else {
       // Go to previous step or sample
       if (currentStepIndex > 0) {
         // Go to previous step in current sample
-        setCurrentStepIndex(currentStepIndex - 1);
-        // Show the answer for the previous step
-        setShowPredictions(true);
-        setShowActualToken(true);
+        dispatch({ type: ACTION_TYPES.PREV_STEP });
       } else if (currentSampleIndex > 0) {
         // Go to last step of previous sample
-        const prevSample = data[currentSampleIndex - 1];
-        
-        // Add defensive check
-        if (!prevSample || !prevSample.steps) {
-          console.error(`Invalid previous sample or missing steps at index ${currentSampleIndex - 1}`);
-          return;
-        }
-        
-        setCurrentSampleIndex(currentSampleIndex - 1);
-        setCurrentStepIndex(prevSample.steps.length - 1);
-        // Show the answer for the last step of previous sample
-        setShowPredictions(true);
-        setShowActualToken(true);
+        dispatch({ type: ACTION_TYPES.PREV_SAMPLE });
       }
     }
   };
@@ -392,7 +545,10 @@ function App() {
   // Ensure we have a valid sample and step
   if (currentSampleIndex >= data.length) {
     console.error(`Sample index ${currentSampleIndex} out of bounds (data length: ${data.length})`);
-    setCurrentSampleIndex(0);
+    // Instead of directly setting state, dispatch an action
+    setTimeout(() => {
+      dispatch({ type: ACTION_TYPES.RESET_STATE });
+    }, 0);
     return null; // Return null to prevent rendering until state is updated
   }
 
@@ -440,7 +596,9 @@ function App() {
   // Ensure step index is valid
   if (currentStepIndex >= currentSample.steps.length) {
     console.error(`Step index ${currentStepIndex} out of bounds (steps length: ${currentSample.steps.length})`);
-    setCurrentStepIndex(0);
+    setTimeout(() => {
+      dispatch({ type: ACTION_TYPES.RESET_STATE });
+    }, 0);
     return null; // Return null to prevent rendering until state is updated
   }
   
