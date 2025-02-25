@@ -165,7 +165,11 @@ def process_math_file(file_path):
         with open(file_path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
         
-        # Process each line
+        # First, validate the entire file
+        print("Validating file format and token counts...")
+        valid_problems = []
+        enc = tiktoken.get_encoding("gpt2")
+        
         for i, line in enumerate(lines):
             line = line.strip()
             if not line or '|' not in line:
@@ -182,11 +186,18 @@ def process_math_file(file_path):
             answer = parts[1]
             
             # Check if answer is a single token
-            enc = tiktoken.get_encoding("gpt2")
             answer_tokens = enc.encode(answer)
             if len(answer_tokens) != 1:
                 print(f"Error on line {i+1}: Answer '{answer}' is not a single token (it's {len(answer_tokens)} tokens)")
                 exit(1)
+            
+            valid_problems.append((prefix, answer))
+        
+        print(f"Validation complete. Found {len(valid_problems)} valid math problems.")
+        
+        # Now generate predictions for each valid problem
+        for i, (prefix, answer) in enumerate(valid_problems):
+            print(f"Processing problem {i+1}/{len(valid_problems)}: {prefix}")
             
             # Create a sample with one step
             sample = {
