@@ -29,8 +29,20 @@ const styles = {
   }
 };
 
+ // Format probability as percentage with 2 significant figures
+ function formatProbability (prob) {
+  const percentage = prob * 100;
+  if (percentage >= 10) {
+    return `${Math.round(percentage)}%`;
+  } else if (percentage >= 1) {
+    return `${percentage.toFixed(1)}%`;
+  } else {
+    return `${percentage.toFixed(2)}%`;
+  }
+};
+
 // ModelPredictions component to eliminate duplication
-function ModelPredictions({ modelName, subtitle, predictions, showActualToken, actualToken, formatProbability }) {
+function ModelPredictions({ modelName, subtitle, predictions, showActualToken, actualToken }) {
   // Check if a prediction matches the actual token
   const isCorrectPrediction = (token) => {
     return token === actualToken;
@@ -280,18 +292,6 @@ function App() {
   // Get minimal progress info
   const progressText = `${currentSampleIndex + 1}.${currentStepIndex + 1}`;
 
-  // Format probability as percentage with 2 significant figures
-  const formatProbability = (prob) => {
-    const percentage = prob * 100;
-    if (percentage >= 10) {
-      return `${Math.round(percentage)}%`;
-    } else if (percentage >= 1) {
-      return `${percentage.toFixed(1)}%`;
-    } else {
-      return `${percentage.toFixed(2)}%`;
-    }
-  };
-
   // Render prefix with a styled blank marker
   const renderPrefix = () => {
     if (showActualToken) {
@@ -422,7 +422,6 @@ function App() {
                 predictions={currentStep.predictions.gpt2}
                 showActualToken={showActualToken}
                 actualToken={currentStep.next_actual_token}
-                formatProbability={formatProbability}
               />
               
               <ModelPredictions 
@@ -431,7 +430,6 @@ function App() {
                 predictions={currentStep.predictions.llama3}
                 showActualToken={showActualToken}
                 actualToken={currentStep.next_actual_token}
-                formatProbability={formatProbability}
               />
             </div>
           ) : (
