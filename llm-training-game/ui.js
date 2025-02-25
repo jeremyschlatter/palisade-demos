@@ -166,12 +166,12 @@ function App() {
       return React.createElement(React.Fragment, null,
         currentStep.prefix,
         React.createElement("span", { className: "filled-blank" }, currentStep.next_actual_token),
-        React.createElement("span", { className: "blank-marker" }, "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0") // 7 non-breaking spaces
+        React.createElement("span", { className: "blank-marker" }) // 7 non-breaking spaces
       );
     } else {
       return React.createElement(React.Fragment, null,
         currentStep.prefix,
-        React.createElement("span", { className: "blank-marker" }, "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0") // 7 non-breaking spaces
+        React.createElement("span", { className: "blank-marker" }, "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0") // 6 non-breaking spaces
       );
     }
   };
