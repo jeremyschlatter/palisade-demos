@@ -48,32 +48,29 @@ function ModelPredictions({ modelName, subtitle, predictions, showActualToken, a
       <ul style={{ listStyleType: 'none', marginTop: '5px' }}>
         {predictions.map((pred, index) => {
           const isCorrect = showActualToken && isCorrectPrediction(pred.token);
-          const itemStyle = {
-            padding: '4px',
-            borderBottom: index === predictions.length - 1 ? 'none' : '1px solid #eee',
-            display: 'flex',
-            alignItems: 'center',
-            fontSize: '14px',
-            backgroundColor: isCorrect ? 'rgba(76, 175, 80, 0.1)' : 'transparent'
-          };
-          
-          const tokenStyle = {
-            fontFamily: 'monospace',
-            backgroundColor: isCorrect ? 'rgba(76, 175, 80, 0.3)' : '#f0f0f0',
-            padding: '1px 4px',
-            borderRadius: '2px',
-            border: isCorrect ? `1px solid ${colors.correct}` : 'none'
-          };
           
           return (
-            <li key={`${modelName}-${index}`} style={itemStyle}>
+            <li key={`${modelName}-${index}`} style={{
+              padding: '4px',
+              borderBottom: index === predictions.length - 1 ? 'none' : '1px solid #eee',
+              display: 'flex',
+              alignItems: 'center',
+              fontSize: '14px',
+              backgroundColor: isCorrect ? 'rgba(76, 175, 80, 0.1)' : 'transparent'
+            }}>
               <span style={{
                 fontWeight: 'bold',
                 marginRight: '10px',
                 minWidth: '60px',
                 color: colors.secondary
               }}>{formatProbability(pred.probability)}</span>
-              <span style={tokenStyle}>{pred.token}</span>
+              <span style={{
+                fontFamily: 'monospace',
+                backgroundColor: isCorrect ? 'rgba(76, 175, 80, 0.3)' : '#f0f0f0',
+                padding: '1px 4px',
+                borderRadius: '2px',
+                border: isCorrect ? `1px solid ${colors.correct}` : 'none'
+              }}>{pred.token}</span>
             </li>
           );
         })}
