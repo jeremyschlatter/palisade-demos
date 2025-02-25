@@ -142,13 +142,38 @@ def generate_step_data(words, prefix_size):
     
     return result
 
-def generate_sample_data(num_samples=10, steps_per_sample=10, min_sample_length=40):
+def get_text_from_file(file_path):
+    """Read text from a file"""
+    print(f"Reading text from file: {file_path}")
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            text = f.read()
+        return {
+            'title': os.path.basename(file_path),
+            'text': text
+        }
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        exit(1)
+
+def generate_sample_data(num_samples=10, steps_per_sample=10, min_sample_length=40, file_path=None):
     """Generate data for multiple samples with multiple steps each"""
     all_samples = []
     
     for i in tqdm(range(num_samples), desc="Generating samples"):
-        # Get a random Wikipedia article
-        article = get_random_wikipedia_article()
+        # Get text either from file or Wikipedia
+        if file_path:
+            # For file input, we only get the text once and create multiple samples from it
+            if i == 0:
+                article = get_text_from_file(file_path)
+                full_text = article['text']
+            
+            # For each sample, get a different portion of the text
+            article_text = full_text
+            article = {'title': f"{os.path.basename(file_path)} (section {i+1})", 'text': article_text}
+        else:
+            # Get a random Wikipedia article
+            article = get_random_wikipedia_article()
         
         # Get a random text sample
         sample_words = get_random_text_sample(article['text'], minimum_sample_length=min_sample_length)
@@ -180,14 +205,19 @@ def generate_sample_data(num_samples=10, steps_per_sample=10, min_sample_length=
     return all_samples
 
 def main():
-    parser = argparse.ArgumentParser(description='Generate model prediction data from Wikipedia articles')
-    parser.add_argument('--num_samples', type=int, default=10, help='Number of Wikipedia samples to generate')
+    parser = argparse.ArgumentParser(description='Generate model prediction data from Wikipedia articles or a text file')
+    parser.add_argument('--num_samples', type=int, default=10, help='Number of samples to generate')
     parser.add_argument('--steps_per_sample', type=int, default=10, help='Number of steps per sample')
     parser.add_argument('--output', type=str, default='prediction_data.json', help='Output JSON file')
+    parser.add_argument('--file', type=str, help='Path to a text file to use instead of Wikipedia articles')
     args = parser.parse_args()
     
-    print(f"Generating {args.num_samples} samples with {args.steps_per_sample} steps each...")
-    data = generate_sample_data(args.num_samples, args.steps_per_sample)
+    source_text = "Wikipedia articles"
+    if args.file:
+        source_text = f"text from {args.file}"
+        
+    print(f"Generating {args.num_samples} samples with {args.steps_per_sample} steps each from {source_text}...")
+    data = generate_sample_data(args.num_samples, args.steps_per_sample, file_path=args.file)
     
     # Save to JSON file
     with open(args.output, 'w') as f:
