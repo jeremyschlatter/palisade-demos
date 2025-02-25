@@ -90,31 +90,31 @@ function App() {
   // Render loading state
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading prediction data...</p>
-      </div>
+      React.createElement("div", { className: "loading-container" },
+        React.createElement("div", { className: "loading-spinner" }),
+        React.createElement("p", null, "Loading prediction data...")
+      )
     );
   }
 
   // Render error state
   if (error) {
     return (
-      <div className="error-container">
-        <h2>Error Loading Data</h2>
-        <p>{error}</p>
-        <p>Make sure prediction_data.json is available in the same directory as this HTML file.</p>
-      </div>
+      React.createElement("div", { className: "error-container" },
+        React.createElement("h2", null, "Error Loading Data"),
+        React.createElement("p", null, error),
+        React.createElement("p", null, "Make sure prediction_data.json is available in the same directory as this HTML file.")
+      )
     );
   }
 
   // Render when no data is available
   if (!data || data.length === 0) {
     return (
-      <div className="error-container">
-        <h2>No Data Available</h2>
-        <p>No prediction data was found. Please generate data using generate.py first.</p>
-      </div>
+      React.createElement("div", { className: "error-container" },
+        React.createElement("h2", null, "No Data Available"),
+        React.createElement("p", null, "No prediction data was found. Please generate data using generate.py first.")
+      )
     );
   }
 
@@ -123,103 +123,87 @@ function App() {
   const currentStep = currentSample.steps[currentStepIndex];
 
   return (
-    <div className="app-container">
-      <header>
-        <h1>LLM Prediction Viewer</h1>
-        <p className="subtitle">Compare how different language models predict the next token</p>
-      </header>
+    React.createElement("div", { className: "app-container" },
+      React.createElement("header", null,
+        React.createElement("h1", null, "LLM Prediction Viewer"),
+        React.createElement("p", { className: "subtitle" }, "Compare how different language models predict the next token")
+      ),
 
-      <div className="navigation-controls">
-        <div className="sample-navigation">
-          <button onClick={goToPreviousSample} disabled={currentSampleIndex === 0}>
-            ← Previous Article
-          </button>
-          <span className="sample-info">
-            Article {currentSampleIndex + 1} of {data.length}: {currentSample.article_title}
-          </span>
-          <button onClick={goToNextSample} disabled={currentSampleIndex === data.length - 1}>
-            Next Article →
-          </button>
-        </div>
+      React.createElement("div", { className: "navigation-controls" },
+        React.createElement("div", { className: "sample-navigation" },
+          React.createElement("button", { onClick: goToPreviousSample, disabled: currentSampleIndex === 0 }, "← Previous Article"),
+          React.createElement("span", { className: "sample-info" }, 
+            "Article ", currentSampleIndex + 1, " of ", data.length, ": ", currentSample.article_title
+          ),
+          React.createElement("button", { onClick: goToNextSample, disabled: currentSampleIndex === data.length - 1 }, "Next Article →")
+        ),
 
-        <div className="step-navigation">
-          <button onClick={goToPreviousStep} disabled={currentStepIndex === 0}>
-            ← Previous Step
-          </button>
-          <span className="step-info">
-            Step {currentStepIndex + 1} of {currentSample.steps.length}
-          </span>
-          <button onClick={goToNextStep} disabled={currentStepIndex === currentSample.steps.length - 1}>
-            Next Step →
-          </button>
-        </div>
-      </div>
+        React.createElement("div", { className: "step-navigation" },
+          React.createElement("button", { onClick: goToPreviousStep, disabled: currentStepIndex === 0 }, "← Previous Step"),
+          React.createElement("span", { className: "step-info" },
+            "Step ", currentStepIndex + 1, " of ", currentSample.steps.length
+          ),
+          React.createElement("button", { onClick: goToNextStep, disabled: currentStepIndex === currentSample.steps.length - 1 }, "Next Step →")
+        )
+      ),
 
-      <div className="content-container">
-        <div className="prefix-container">
-          <h2>What comes next?</h2>
-          <div className="prefix-text">{currentStep.prefix}</div>
-        </div>
+      React.createElement("div", { className: "content-container" },
+        React.createElement("div", { className: "prefix-container" },
+          React.createElement("h2", null, "What comes next?"),
+          React.createElement("div", { className: "prefix-text" }, currentStep.prefix)
+        ),
 
-        <div className="action-buttons">
-          <button className="primary-button" onClick={togglePredictions}>
-            {showPredictions ? "Hide Predictions" : "Show Predictions"}
-          </button>
-          <button className="secondary-button" onClick={revealAndAdvance}>
-            Reveal Next Token
-          </button>
-        </div>
+        React.createElement("div", { className: "action-buttons" },
+          React.createElement("button", { className: "primary-button", onClick: togglePredictions },
+            showPredictions ? "Hide Predictions" : "Show Predictions"
+          ),
+          React.createElement("button", { className: "secondary-button", onClick: revealAndAdvance }, "Reveal Next Token")
+        ),
 
-        {showPredictions && (
-          <div className="predictions-container">
-            <h2>Model Predictions</h2>
-            <div className="models-grid">
-              <div className="model-predictions">
-                <h3>GPT-2</h3>
-                <ul className="prediction-list">
-                  {currentStep.predictions.gpt2.map((pred, index) => (
-                    <li key={`gpt2-${index}`} className="prediction-item">
-                      <span className="probability">{pred.probability.toFixed(3)}</span>
-                      <span className="token">{pred.token}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+        showPredictions && 
+          React.createElement("div", { className: "predictions-container" },
+            React.createElement("h2", null, "Model Predictions"),
+            React.createElement("div", { className: "models-grid" },
+              React.createElement("div", { className: "model-predictions" },
+                React.createElement("h3", null, "GPT-2"),
+                React.createElement("ul", { className: "prediction-list" },
+                  currentStep.predictions.gpt2.map((pred, index) => 
+                    React.createElement("li", { key: `gpt2-${index}`, className: "prediction-item" },
+                      React.createElement("span", { className: "probability" }, pred.probability.toFixed(3)),
+                      React.createElement("span", { className: "token" }, pred.token)
+                    )
+                  )
+                )
+              ),
 
-              <div className="model-predictions">
-                <h3>Llama 3.1</h3>
-                <ul className="prediction-list">
-                  {currentStep.predictions.llama3.map((pred, index) => (
-                    <li key={`llama3-${index}`} className="prediction-item">
-                      {pred.error ? (
-                        <span className="error">{pred.error}</span>
-                      ) : (
-                        <>
-                          <span className="probability">{pred.probability.toFixed(3)}</span>
-                          <span className="token">{pred.token}</span>
-                        </>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
+              React.createElement("div", { className: "model-predictions" },
+                React.createElement("h3", null, "Llama 3.1"),
+                React.createElement("ul", { className: "prediction-list" },
+                  currentStep.predictions.llama3.map((pred, index) => 
+                    React.createElement("li", { key: `llama3-${index}`, className: "prediction-item" },
+                      pred.error 
+                        ? React.createElement("span", { className: "error" }, pred.error)
+                        : React.createElement(React.Fragment, null,
+                            React.createElement("span", { className: "probability" }, pred.probability.toFixed(3)),
+                            React.createElement("span", { className: "token" }, pred.token)
+                          )
+                    )
+                  )
+                )
+              )
+            )
+          ),
 
-        {showActualToken && (
-          <div className="actual-token-container">
-            <h2>Actual Next Token</h2>
-            <div className="actual-token">{currentStep.next_actual_token}</div>
-            <button className="continue-button" onClick={continueToNextStep}>
-              Continue to Next Step
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
+        showActualToken && 
+          React.createElement("div", { className: "actual-token-container" },
+            React.createElement("h2", null, "Actual Next Token"),
+            React.createElement("div", { className: "actual-token" }, currentStep.next_actual_token),
+            React.createElement("button", { className: "continue-button", onClick: continueToNextStep }, "Continue to Next Step")
+          )
+      )
+    )
   );
 }
 
 // Render the app
-ReactDOM.render(<App />, document.getElementById('root')); 
+ReactDOM.render(React.createElement(App), document.getElementById('root')); 
