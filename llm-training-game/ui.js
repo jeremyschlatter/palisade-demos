@@ -210,7 +210,8 @@ function App() {
           <div className="predictions-container">
             <div className="models-grid">
               <div className="model-predictions">
-                <h3>GPT-2 (1.5B, 02/2019)</h3>
+                <h3>GPT-2</h3>
+                <h4>1.5B params, 2019</h4>
                 <ul className="prediction-list">
                   {currentStep.predictions.gpt2.map((pred, index) => (
                     <li 
@@ -229,7 +230,8 @@ function App() {
               </div>
 
               <div className="model-predictions">
-                <h3>Llama 3.1 (405B, 06/2024)</h3>
+                <h3>Llama 3.1</h3>
+                <h4>405B params, 2024</h4>
                 <ul className="prediction-list">
                   {currentStep.predictions.llama3.map((pred, index) => (
                     <li 
