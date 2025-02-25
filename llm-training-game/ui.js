@@ -182,7 +182,23 @@ function App() {
   return (
     <div className="app-container">
       <div className="status-bar">
+        <button 
+          className="nav-button" 
+          onClick={handleBackward}
+          disabled={currentSampleIndex === 0 && currentStepIndex === 0 && !showPredictions && !showActualToken}
+        >
+          ←
+        </button>
         <span className="status-text">{progressText}</span>
+        <button 
+          className="nav-button forward-button" 
+          onClick={handleForward}
+          disabled={currentSampleIndex === data.length - 1 && 
+                   currentStepIndex === currentSample.steps.length - 1 && 
+                   showPredictions && showActualToken}
+        >
+          →
+        </button>
       </div>
 
       <div className="content-container">
@@ -245,25 +261,6 @@ function App() {
             <div className="actual-token">{currentStep.next_actual_token}</div>
           </div>
         )}
-          
-        <div className="navigation-buttons">
-          <button 
-            className="nav-button" 
-            onClick={handleBackward}
-            disabled={currentSampleIndex === 0 && currentStepIndex === 0 && !showPredictions && !showActualToken}
-          >
-            ←
-          </button>
-          <button 
-            className="nav-button forward-button" 
-            onClick={handleForward}
-            disabled={currentSampleIndex === data.length - 1 && 
-                     currentStepIndex === currentSample.steps.length - 1 && 
-                     showPredictions && showActualToken}
-          >
-            →
-          </button>
-        </div>
       </div>
     </div>
   );

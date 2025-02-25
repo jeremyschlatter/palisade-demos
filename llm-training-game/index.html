@@ -48,16 +48,20 @@
     
     .status-bar {
       background-color: #f1f3f5;
-      padding: 4px 8px;
+      padding: 8px 15px;
       border-bottom: 1px solid var(--border-color);
-      font-size: 12px;
-      color: #777;
-      text-align: right;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     
     .status-text {
       font-family: monospace;
       font-weight: bold;
+      /* font-size: 14px; */
+      color: #777;
+      flex-grow: 1;
+      text-align: center;
     }
     
     .content-container {
@@ -91,23 +95,20 @@
       display: inline-block;
     }
     
-    .navigation-buttons {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 15px;
-      padding: 0 20px;
-    }
-    
     .nav-button {
       background-color: var(--secondary-color);
       color: white;
       border: none;
-      padding: 8px 16px;
+      padding: 6px 12px;
       border-radius: 3px;
       cursor: pointer;
-      font-size: 18px;
+      font-size: 16px;
       transition: background-color 0.2s;
-      width: 60px;
+      width: 40px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     
     .forward-button {
