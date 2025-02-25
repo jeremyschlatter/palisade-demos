@@ -55,12 +55,8 @@ const ACTION_TYPES = {
   SET_LOADING: 'SET_LOADING',
   SET_ERROR: 'SET_ERROR',
   CHANGE_DATASET: 'CHANGE_DATASET',
-  SHOW_PREDICTIONS: 'SHOW_PREDICTIONS',
-  SHOW_ACTUAL_TOKEN: 'SHOW_ACTUAL_TOKEN',
-  NEXT_STEP: 'NEXT_STEP',
-  PREV_STEP: 'PREV_STEP',
-  NEXT_SAMPLE: 'NEXT_SAMPLE',
-  PREV_SAMPLE: 'PREV_SAMPLE',
+  FORWARD: 'FORWARD',
+  BACKWARD: 'BACKWARD',
   RESET_STATE: 'RESET_STATE',
   NEXT_DATASET: 'NEXT_DATASET',
   PREV_DATASET: 'PREV_DATASET'
@@ -136,80 +132,98 @@ function appReducer(state, action) {
         showActualToken: false
       };
 
-    case ACTION_TYPES.SHOW_PREDICTIONS:
-      return {
-        ...state,
-        showPredictions: true
-      };
-
-    case ACTION_TYPES.SHOW_ACTUAL_TOKEN:
-      return {
-        ...state,
-        showActualToken: true
-      };
-
-    case ACTION_TYPES.NEXT_STEP: {
+    case ACTION_TYPES.FORWARD: {
       const currentDataset = getCurrentDatasetFromState(state);
       if (!currentDataset) return state;
 
-      const currentSample = currentDataset[state.currentSampleIndex];
-      if (!currentSample || !currentSample.steps) return state;
-
-      if (state.currentStepIndex < currentSample.steps.length - 1) {
+      // If we're not showing predictions yet, show them
+      if (!state.showPredictions) {
         return {
           ...state,
-          currentStepIndex: state.currentStepIndex + 1,
-          showPredictions: false,
-          showActualToken: false
+          showPredictions: true
         };
       }
-      return state;
-    }
-
-    case ACTION_TYPES.PREV_STEP:
-      if (state.currentStepIndex > 0) {
+      // If we're showing predictions but not the actual token, show it
+      else if (!state.showActualToken) {
         return {
           ...state,
-          currentStepIndex: state.currentStepIndex - 1,
-          showPredictions: true,
           showActualToken: true
         };
       }
-      return state;
+      // If we're showing both, advance to the next step or sample
+      else {
+        const currentSample = currentDataset[state.currentSampleIndex];
+        if (!currentSample || !currentSample.steps) return state;
 
-    case ACTION_TYPES.NEXT_SAMPLE: {
+        // If we're not at the last step of the current sample, go to next step
+        if (state.currentStepIndex < currentSample.steps.length - 1) {
+          return {
+            ...state,
+            currentStepIndex: state.currentStepIndex + 1,
+            showPredictions: false,
+            showActualToken: false
+          };
+        }
+        // If we're at the last step but not the last sample, go to the first step of the next sample
+        else if (state.currentSampleIndex < currentDataset.length - 1) {
+          return {
+            ...state,
+            currentSampleIndex: state.currentSampleIndex + 1,
+            currentStepIndex: 0,
+            showPredictions: false,
+            showActualToken: false
+          };
+        }
+        // If we're at the last step of the last sample, do nothing
+        return state;
+      }
+    }
+
+    case ACTION_TYPES.BACKWARD: {
       const currentDataset = getCurrentDatasetFromState(state);
       if (!currentDataset) return state;
 
-      if (state.currentSampleIndex < currentDataset.length - 1) {
+      // If showing the actual token, go back to just showing predictions
+      if (state.showActualToken) {
         return {
           ...state,
-          currentSampleIndex: state.currentSampleIndex + 1,
-          currentStepIndex: 0,
-          showPredictions: false,
           showActualToken: false
         };
       }
-      return state;
-    }
-
-    case ACTION_TYPES.PREV_SAMPLE: {
-      const currentDataset = getCurrentDatasetFromState(state);
-      if (!currentDataset) return state;
-
-      if (state.currentSampleIndex > 0) {
-        const prevSample = currentDataset[state.currentSampleIndex - 1];
-        if (!prevSample || !prevSample.steps) return state;
-
+      // If showing predictions but not the actual token, hide predictions
+      else if (state.showPredictions) {
         return {
           ...state,
-          currentSampleIndex: state.currentSampleIndex - 1,
-          currentStepIndex: prevSample.steps.length - 1,
-          showPredictions: true,
-          showActualToken: true
+          showPredictions: false
         };
       }
-      return state;
+      // If not showing anything, go to the previous step or sample
+      else {
+        // If we're not at the first step of the current sample, go to previous step
+        if (state.currentStepIndex > 0) {
+          return {
+            ...state,
+            currentStepIndex: state.currentStepIndex - 1,
+            showPredictions: true,
+            showActualToken: true
+          };
+        }
+        // If we're at the first step but not the first sample, go to the last step of the previous sample
+        else if (state.currentSampleIndex > 0) {
+          const prevSample = currentDataset[state.currentSampleIndex - 1];
+          if (!prevSample || !prevSample.steps) return state;
+
+          return {
+            ...state,
+            currentSampleIndex: state.currentSampleIndex - 1,
+            currentStepIndex: prevSample.steps.length - 1,
+            showPredictions: true,
+            showActualToken: true
+          };
+        }
+        // If we're at the first step of the first sample, do nothing
+        return state;
+      }
     }
 
     case ACTION_TYPES.RESET_STATE:
@@ -411,24 +425,7 @@ function App() {
     const data = getCurrentDataset();
     if (!data) return;
 
-    if (!showPredictions) {
-      // First step: Show predictions
-      dispatch({ type: ACTION_TYPES.SHOW_PREDICTIONS });
-    } else if (!showActualToken) {
-      // Second step: Show actual token
-      dispatch({ type: ACTION_TYPES.SHOW_ACTUAL_TOKEN });
-    } else {
-      // Third step: Advance to next step or sample
-      const currentSample = data[currentSampleIndex];
-
-      if (currentStepIndex < currentSample.steps.length - 1) {
-        // Move to next step in current sample
-        dispatch({ type: ACTION_TYPES.NEXT_STEP });
-      } else if (currentSampleIndex < data.length - 1) {
-        // Move to first step of next sample
-        dispatch({ type: ACTION_TYPES.NEXT_SAMPLE });
-      }
-    }
+    dispatch({ type: ACTION_TYPES.FORWARD });
   };
 
   // Handle backward action
@@ -436,22 +433,7 @@ function App() {
     const data = getCurrentDataset();
     if (!data) return;
 
-    if (showActualToken) {
-      // If showing answer, go back to just showing predictions
-      dispatch({ type: ACTION_TYPES.SHOW_PREDICTIONS });
-    } else if (showPredictions) {
-      // If showing predictions, hide them
-      dispatch({ type: ACTION_TYPES.RESET_STATE });
-    } else {
-      // Go to previous step or sample
-      if (currentStepIndex > 0) {
-        // Go to previous step in current sample
-        dispatch({ type: ACTION_TYPES.PREV_STEP });
-      } else if (currentSampleIndex > 0) {
-        // Go to last step of previous sample
-        dispatch({ type: ACTION_TYPES.PREV_SAMPLE });
-      }
-    }
+    dispatch({ type: ACTION_TYPES.BACKWARD });
   };
 
   // Render loading state
