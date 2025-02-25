@@ -15,33 +15,8 @@ const colors = {
   disabled: '#b0bec5'
 };
 
-// Only keep styles that are reused multiple times
+// Only keep styles that are used across components
 const styles = {
-  // Reused token styles
-  token: {
-    fontFamily: 'monospace',
-    backgroundColor: '#f0f0f0',
-    padding: '1px 4px',
-    borderRadius: '2px'
-  },
-  correctToken: {
-    backgroundColor: 'rgba(76, 175, 80, 0.3)',
-    border: `1px solid ${colors.correct}`
-  },
-  // Reused prediction item styles
-  predictionItem: {
-    padding: '4px',
-    borderBottom: '1px solid #eee',
-    display: 'flex',
-    alignItems: 'center',
-    fontSize: '14px'
-  },
-  predictionItemLast: {
-    borderBottom: 'none'
-  },
-  correctPrediction: {
-    backgroundColor: 'rgba(76, 175, 80, 0.1)'
-  },
   // Reused model header styles
   modelTitle: {
     fontSize: '14px',
@@ -53,6 +28,80 @@ const styles = {
     color: colors.primary
   }
 };
+
+// ModelPredictions component to eliminate duplication
+function ModelPredictions({ modelName, subtitle, predictions, showActualToken, actualToken, formatProbability }) {
+  // Check if a prediction matches the actual token
+  const isCorrectPrediction = (token) => {
+    return token === actualToken;
+  };
+  
+  return (
+    <div style={{
+      backgroundColor: 'white',
+      borderRadius: '3px',
+      padding: '10px',
+      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+    }}>
+      <h3 style={styles.modelTitle}>{modelName}</h3>
+      <h4 style={styles.modelSubtitle}>{subtitle}</h4>
+      <ul style={{ listStyleType: 'none', marginTop: '5px' }}>
+        {predictions.map((pred, index) => {
+          const isCorrect = showActualToken && isCorrectPrediction(pred.token);
+          const itemStyle = {
+            padding: '4px',
+            borderBottom: index === predictions.length - 1 ? 'none' : '1px solid #eee',
+            display: 'flex',
+            alignItems: 'center',
+            fontSize: '14px',
+            backgroundColor: isCorrect ? 'rgba(76, 175, 80, 0.1)' : 'transparent'
+          };
+          
+          const tokenStyle = {
+            fontFamily: 'monospace',
+            backgroundColor: isCorrect ? 'rgba(76, 175, 80, 0.3)' : '#f0f0f0',
+            padding: '1px 4px',
+            borderRadius: '2px',
+            border: isCorrect ? `1px solid ${colors.correct}` : 'none'
+          };
+          
+          return (
+            <li key={`${modelName}-${index}`} style={itemStyle}>
+              <span style={{
+                fontWeight: 'bold',
+                marginRight: '10px',
+                minWidth: '60px',
+                color: colors.secondary
+              }}>{formatProbability(pred.probability)}</span>
+              <span style={tokenStyle}>{pred.token}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+// ModelPlaceholder component for when predictions aren't shown
+function ModelPlaceholder({ modelName, subtitle }) {
+  return (
+    <div style={{
+      backgroundColor: 'white',
+      borderRadius: '3px',
+      padding: '10px',
+      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+    }}>
+      <h3 style={styles.modelTitle}>{modelName}</h3>
+      <h4 style={styles.modelSubtitle}>{subtitle}</h4>
+      <div style={{
+        height: '150px',
+        backgroundColor: '#f0f0f0',
+        borderRadius: '3px',
+        marginTop: '5px'
+      }}></div>
+    </div>
+  );
+}
 
 // Main App component
 function App() {
@@ -246,11 +295,6 @@ function App() {
     }
   };
 
-  // Check if a prediction matches the actual token
-  const isCorrectPrediction = (token) => {
-    return token === currentStep.next_actual_token;
-  };
-
   // Render prefix with a styled blank marker
   const renderPrefix = () => {
     if (showActualToken) {
@@ -375,83 +419,23 @@ function App() {
               gap: '15px',
               marginTop: '10px'
             }}>
-              <div style={{
-                backgroundColor: 'white',
-                borderRadius: '3px',
-                padding: '10px',
-                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-              }}>
-                <h3 style={styles.modelTitle}>GPT-2</h3>
-                <h4 style={styles.modelSubtitle}>1.5B params, 2019</h4>
-                <ul style={{ listStyleType: 'none', marginTop: '5px' }}>
-                  {currentStep.predictions.gpt2.map((pred, index) => {
-                    const isCorrect = showActualToken && isCorrectPrediction(pred.token);
-                    const itemStyle = {
-                      ...styles.predictionItem,
-                      ...(index === currentStep.predictions.gpt2.length - 1 ? styles.predictionItemLast : {}),
-                      ...(isCorrect ? styles.correctPrediction : {})
-                    };
-                    const tokenStyle = {
-                      ...styles.token,
-                      ...(isCorrect ? styles.correctToken : {})
-                    };
-                    
-                    return (
-                      <li key={`gpt2-${index}`} style={itemStyle}>
-                        <span style={{
-                          fontWeight: 'bold',
-                          marginRight: '10px',
-                          minWidth: '60px',
-                          color: colors.secondary
-                        }}>{formatProbability(pred.probability)}</span>
-                        <span style={tokenStyle}>{pred.token}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-
-              <div style={{
-                backgroundColor: 'white',
-                borderRadius: '3px',
-                padding: '10px',
-                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-              }}>
-                <h3 style={styles.modelTitle}>Llama 3.1</h3>
-                <h4 style={styles.modelSubtitle}>405B params, 2024</h4>
-                <ul style={{ listStyleType: 'none', marginTop: '5px' }}>
-                  {currentStep.predictions.llama3.map((pred, index) => {
-                    const isCorrect = showActualToken && !pred.error && isCorrectPrediction(pred.token);
-                    const itemStyle = {
-                      ...styles.predictionItem,
-                      ...(index === currentStep.predictions.llama3.length - 1 ? styles.predictionItemLast : {}),
-                      ...(isCorrect ? styles.correctPrediction : {})
-                    };
-                    const tokenStyle = {
-                      ...styles.token,
-                      ...(isCorrect ? styles.correctToken : {})
-                    };
-                    
-                    return (
-                      <li key={`llama3-${index}`} style={itemStyle}>
-                        {pred.error ? (
-                          <span style={{ color: colors.error, fontStyle: 'italic' }}>{pred.error}</span>
-                        ) : (
-                          <React.Fragment>
-                            <span style={{
-                              fontWeight: 'bold',
-                              marginRight: '10px',
-                              minWidth: '60px',
-                              color: colors.secondary
-                            }}>{formatProbability(pred.probability)}</span>
-                            <span style={tokenStyle}>{pred.token}</span>
-                          </React.Fragment>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
+              <ModelPredictions 
+                modelName="GPT-2"
+                subtitle="1.5B params, 2019"
+                predictions={currentStep.predictions.gpt2}
+                showActualToken={showActualToken}
+                actualToken={currentStep.next_actual_token}
+                formatProbability={formatProbability}
+              />
+              
+              <ModelPredictions 
+                modelName="Llama 3.1"
+                subtitle="405B params, 2024"
+                predictions={currentStep.predictions.llama3}
+                showActualToken={showActualToken}
+                actualToken={currentStep.next_actual_token}
+                formatProbability={formatProbability}
+              />
             </div>
           ) : (
             <div style={{ opacity: 0.4 }}>
@@ -461,36 +445,14 @@ function App() {
                 gap: '15px',
                 marginTop: '10px'
               }}>
-                <div style={{
-                  backgroundColor: 'white',
-                  borderRadius: '3px',
-                  padding: '10px',
-                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                }}>
-                  <h3 style={styles.modelTitle}>GPT-2</h3>
-                  <h4 style={styles.modelSubtitle}>1.5B params, 2019</h4>
-                  <div style={{
-                    height: '150px',
-                    backgroundColor: '#f0f0f0',
-                    borderRadius: '3px',
-                    marginTop: '5px'
-                  }}></div>
-                </div>
-                <div style={{
-                  backgroundColor: 'white',
-                  borderRadius: '3px',
-                  padding: '10px',
-                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                }}>
-                  <h3 style={styles.modelTitle}>Llama 3.1</h3>
-                  <h4 style={styles.modelSubtitle}>405B params, 2024</h4>
-                  <div style={{
-                    height: '150px',
-                    backgroundColor: '#f0f0f0',
-                    borderRadius: '3px',
-                    marginTop: '5px'
-                  }}></div>
-                </div>
+                <ModelPlaceholder 
+                  modelName="GPT-2"
+                  subtitle="1.5B params, 2019"
+                />
+                <ModelPlaceholder 
+                  modelName="Llama 3.1"
+                  subtitle="405B params, 2024"
+                />
               </div>
             </div>
           )}
