@@ -49,6 +49,14 @@ const DATASETS = [
   'wikipedia.json'
 ];
 
+// Map dataset filenames to user-friendly titles
+const DATASET_TITLES = {
+  'addition.json': 'addition',
+  'multiply.json': 'multiplication',
+  'specification-gaming.json': 'specification gaming paper',
+  'wikipedia.json': 'wikipedia',
+};
+
 // Define action types for reducer
 const ACTION_TYPES = {
   SET_DATASETS: 'SET_DATASETS',
@@ -378,7 +386,12 @@ function App() {
 
   // Handle dataset change
   const handleDatasetChange = (event) => {
-    const newIndex = DATASETS.indexOf(event.target.value);
+    const selectedTitle = event.target.value;
+    const selectedFilename = Object.keys(DATASET_TITLES).find(
+      key => DATASET_TITLES[key] === selectedTitle
+    );
+    const newIndex = DATASETS.indexOf(selectedFilename);
+    
     if (newIndex !== -1 && newIndex !== currentDatasetIndex) {
       dispatch({ type: ACTION_TYPES.CHANGE_DATASET, payload: newIndex });
     }
@@ -498,7 +511,7 @@ function App() {
           <label htmlFor="dataset-select" style={{ marginRight: '10px' }}>Dataset:</label>
           <select
             id="dataset-select"
-            value={DATASETS[currentDatasetIndex]}
+            value={DATASET_TITLES[DATASETS[currentDatasetIndex]]}
             onChange={handleDatasetChange}
             style={{
               padding: '8px',
@@ -510,7 +523,7 @@ function App() {
             }}
           >
             {DATASETS.map(dataset => (
-              <option key={dataset} value={dataset}>{dataset}</option>
+              <option key={dataset} value={DATASET_TITLES[dataset]}>{DATASET_TITLES[dataset]}</option>
             ))}
           </select>
         </div>
@@ -634,7 +647,7 @@ function App() {
           }}>{progressText}</span>
 
           <select
-            value={DATASETS[currentDatasetIndex]}
+            value={DATASET_TITLES[DATASETS[currentDatasetIndex]]}
             onChange={handleDatasetChange}
             style={{
               padding: '4px 8px',
@@ -648,7 +661,7 @@ function App() {
             }}
           >
             {DATASETS.map(dataset => (
-              <option key={dataset} value={dataset}>{dataset}</option>
+              <option key={dataset} value={DATASET_TITLES[dataset]}>{DATASET_TITLES[dataset]}</option>
             ))}
           </select>
         </div>
