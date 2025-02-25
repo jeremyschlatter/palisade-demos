@@ -163,7 +163,15 @@ function App() {
   // Get current dataset
   const getCurrentDataset = () => {
     const currentDatasetName = DATASETS[currentDatasetIndex];
-    return datasets[currentDatasetName] || null;
+    const dataset = datasets[currentDatasetName];
+    
+    if (!dataset) {
+      console.error(`Dataset not found or is null: ${currentDatasetName}`);
+      // You could also set an error state here if you want to display it in the UI
+      // setError(`Dataset not found: ${currentDatasetName}`);
+    }
+    
+    return dataset;
   };
 
   // Reset state when changing datasets
@@ -192,6 +200,8 @@ function App() {
         // Check if we're at the last phase of the last step of the last sample
         const isLastPhase = data && 
                            currentSampleIndex === data.length - 1 && 
+                           data[currentSampleIndex] && 
+                           data[currentSampleIndex].steps && 
                            currentStepIndex === data[currentSampleIndex].steps.length - 1 && 
                            showPredictions && 
                            showActualToken;
@@ -238,6 +248,12 @@ function App() {
       // Third step: Advance to next step or sample
       const currentSample = data[currentSampleIndex];
       
+      // Add defensive check
+      if (!currentSample || !currentSample.steps) {
+        console.error(`Invalid sample or missing steps at index ${currentSampleIndex}`);
+        return;
+      }
+      
       if (currentStepIndex < currentSample.steps.length - 1) {
         // Move to next step in current sample
         setCurrentStepIndex(currentStepIndex + 1);
@@ -275,6 +291,13 @@ function App() {
       } else if (currentSampleIndex > 0) {
         // Go to last step of previous sample
         const prevSample = data[currentSampleIndex - 1];
+        
+        // Add defensive check
+        if (!prevSample || !prevSample.steps) {
+          console.error(`Invalid previous sample or missing steps at index ${currentSampleIndex - 1}`);
+          return;
+        }
+        
         setCurrentSampleIndex(currentSampleIndex - 1);
         setCurrentStepIndex(prevSample.steps.length - 1);
         // Show the answer for the last step of previous sample
@@ -366,9 +389,81 @@ function App() {
     );
   }
 
-  // Get current sample and step
+  // Ensure we have a valid sample and step
+  if (currentSampleIndex >= data.length) {
+    console.error(`Sample index ${currentSampleIndex} out of bounds (data length: ${data.length})`);
+    setCurrentSampleIndex(0);
+    return null; // Return null to prevent rendering until state is updated
+  }
+
   const currentSample = data[currentSampleIndex];
+  
+  // Add defensive check for currentSample
+  if (!currentSample || !currentSample.steps) {
+    console.error(`Invalid sample or missing steps at index ${currentSampleIndex}`);
+    return (
+      <div style={{
+        maxWidth: '500px',
+        margin: '50px auto',
+        padding: '15px',
+        backgroundColor: '#ffebee',
+        borderRadius: '3px',
+        borderLeft: `3px solid ${colors.error}`
+      }}>
+        <h2>Data Format Error</h2>
+        <p>The selected dataset has an invalid format (missing steps property).</p>
+        <p>Please select a different dataset or check the JSON structure.</p>
+        <div style={{ marginTop: '15px' }}>
+          <label htmlFor="dataset-select" style={{ marginRight: '10px' }}>Dataset:</label>
+          <select 
+            id="dataset-select"
+            value={DATASETS[currentDatasetIndex]}
+            onChange={handleDatasetChange}
+            style={{
+              padding: '8px',
+              borderRadius: '3px',
+              border: `1px solid ${colors.border}`,
+              backgroundColor: 'white',
+              color: colors.text,
+              fontSize: '14px'
+            }}
+          >
+            {DATASETS.map(dataset => (
+              <option key={dataset} value={dataset}>{dataset}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+    );
+  }
+  
+  // Ensure step index is valid
+  if (currentStepIndex >= currentSample.steps.length) {
+    console.error(`Step index ${currentStepIndex} out of bounds (steps length: ${currentSample.steps.length})`);
+    setCurrentStepIndex(0);
+    return null; // Return null to prevent rendering until state is updated
+  }
+  
   const currentStep = currentSample.steps[currentStepIndex];
+  
+  // Add defensive check for currentStep
+  if (!currentStep) {
+    console.error(`Invalid step at index ${currentStepIndex}`);
+    return (
+      <div style={{
+        maxWidth: '500px',
+        margin: '50px auto',
+        padding: '15px',
+        backgroundColor: '#ffebee',
+        borderRadius: '3px',
+        borderLeft: `3px solid ${colors.error}`
+      }}>
+        <h2>Data Format Error</h2>
+        <p>The selected step is invalid or missing.</p>
+        <p>Please select a different dataset or check the JSON structure.</p>
+      </div>
+    );
+  }
 
   // Get minimal progress info
   const progressText = `${currentSampleIndex + 1}.${currentStepIndex + 1}`;
@@ -424,6 +519,13 @@ function App() {
     
     return baseStyle;
   };
+
+  // Safely check if we're at the last step
+  const isLastStep = currentSample && 
+                    currentSample.steps && 
+                    currentStepIndex === currentSample.steps.length - 1 && 
+                    showPredictions && 
+                    showActualToken;
 
   return (
     <div style={{
@@ -485,13 +587,9 @@ function App() {
         </div>
         
         <button 
-          style={getNavButtonStyle(true, currentSampleIndex === data.length - 1 && 
-                 currentStepIndex === currentSample.steps.length - 1 && 
-                 showPredictions && showActualToken)}
+          style={getNavButtonStyle(true, isLastStep && currentSampleIndex === data.length - 1)}
           onClick={handleForward}
-          disabled={currentSampleIndex === data.length - 1 && 
-                   currentStepIndex === currentSample.steps.length - 1 && 
-                   showPredictions && showActualToken}
+          disabled={isLastStep && currentSampleIndex === data.length - 1}
         >
           →
         </button>
