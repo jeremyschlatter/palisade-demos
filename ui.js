@@ -1,5 +1,5 @@
 // LLM Prediction Viewer
-// A React application to view model predictions
+// A minimal React application to view model predictions
 
 // Main App component
 function App() {
@@ -124,45 +124,38 @@ function App() {
 
   return (
     React.createElement("div", { className: "app-container" },
-      React.createElement("header", null,
-        React.createElement("h1", null, "LLM Prediction Viewer"),
-        React.createElement("p", { className: "subtitle" }, "Compare how different language models predict the next token")
-      ),
-
       React.createElement("div", { className: "navigation-controls" },
         React.createElement("div", { className: "sample-navigation" },
-          React.createElement("button", { onClick: goToPreviousSample, disabled: currentSampleIndex === 0 }, "← Previous Article"),
+          React.createElement("button", { onClick: goToPreviousSample, disabled: currentSampleIndex === 0 }, "←"),
           React.createElement("span", { className: "sample-info" }, 
-            "Article ", currentSampleIndex + 1, " of ", data.length, ": ", currentSample.article_title
+            currentSample.article_title, " (", currentSampleIndex + 1, "/", data.length, ")"
           ),
-          React.createElement("button", { onClick: goToNextSample, disabled: currentSampleIndex === data.length - 1 }, "Next Article →")
+          React.createElement("button", { onClick: goToNextSample, disabled: currentSampleIndex === data.length - 1 }, "→")
         ),
 
         React.createElement("div", { className: "step-navigation" },
-          React.createElement("button", { onClick: goToPreviousStep, disabled: currentStepIndex === 0 }, "← Previous Step"),
+          React.createElement("button", { onClick: goToPreviousStep, disabled: currentStepIndex === 0 }, "←"),
           React.createElement("span", { className: "step-info" },
-            "Step ", currentStepIndex + 1, " of ", currentSample.steps.length
+            "Step ", currentStepIndex + 1, "/", currentSample.steps.length
           ),
-          React.createElement("button", { onClick: goToNextStep, disabled: currentStepIndex === currentSample.steps.length - 1 }, "Next Step →")
+          React.createElement("button", { onClick: goToNextStep, disabled: currentStepIndex === currentSample.steps.length - 1 }, "→")
         )
       ),
 
       React.createElement("div", { className: "content-container" },
         React.createElement("div", { className: "prefix-container" },
-          React.createElement("h2", null, "What comes next?"),
           React.createElement("div", { className: "prefix-text" }, currentStep.prefix)
         ),
 
         React.createElement("div", { className: "action-buttons" },
           React.createElement("button", { className: "primary-button", onClick: togglePredictions },
-            showPredictions ? "Hide Predictions" : "Show Predictions"
+            showPredictions ? "Hide" : "Show"
           ),
-          React.createElement("button", { className: "secondary-button", onClick: revealAndAdvance }, "Reveal Next Token")
+          React.createElement("button", { className: "secondary-button", onClick: revealAndAdvance }, "Reveal")
         ),
 
         showPredictions && 
           React.createElement("div", { className: "predictions-container" },
-            React.createElement("h2", null, "Model Predictions"),
             React.createElement("div", { className: "models-grid" },
               React.createElement("div", { className: "model-predictions" },
                 React.createElement("h3", null, "GPT-2"),
@@ -196,9 +189,8 @@ function App() {
 
         showActualToken && 
           React.createElement("div", { className: "actual-token-container" },
-            React.createElement("h2", null, "Actual Next Token"),
             React.createElement("div", { className: "actual-token" }, currentStep.next_actual_token),
-            React.createElement("button", { className: "continue-button", onClick: continueToNextStep }, "Continue to Next Step")
+            React.createElement("button", { className: "continue-button", onClick: continueToNextStep }, "Next")
           )
       )
     )
