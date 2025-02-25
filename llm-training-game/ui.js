@@ -34,7 +34,17 @@ function App() {
   React.useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'ArrowRight') {
-        handleForward();
+        // Check if we're at the last phase of the last step of the last sample
+        const isLastPhase = data && 
+                           currentSampleIndex === data.length - 1 && 
+                           currentStepIndex === data[currentSampleIndex].steps.length - 1 && 
+                           showPredictions && 
+                           showActualToken;
+        
+        // Only call handleForward if we're not at the last phase
+        if (!isLastPhase) {
+          handleForward();
+        }
       } else if (event.key === 'ArrowLeft') {
         handleBackward();
       }
