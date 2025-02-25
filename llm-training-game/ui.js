@@ -160,14 +160,19 @@ function App() {
     return token === currentStep.next_actual_token;
   };
 
-  // Render prefix with underscore or with the actual token filled in
+  // Render prefix with a styled blank marker
   const renderPrefix = () => {
-    const blankMarker = "_______"; // 7 underscores for the blank
-    
     if (showActualToken) {
-      return `${currentStep.prefix}${currentStep.next_actual_token}${blankMarker}`;
+      return React.createElement(React.Fragment, null,
+        currentStep.prefix,
+        React.createElement("span", { className: "filled-blank" }, currentStep.next_actual_token),
+        React.createElement("span", { className: "blank-marker" }, "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0") // 7 non-breaking spaces
+      );
     } else {
-      return `${currentStep.prefix}${blankMarker}`;
+      return React.createElement(React.Fragment, null,
+        currentStep.prefix,
+        React.createElement("span", { className: "blank-marker" }, "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0") // 7 non-breaking spaces
+      );
     }
   };
 
