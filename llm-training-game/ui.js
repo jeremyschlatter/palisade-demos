@@ -143,6 +143,34 @@ function App() {
   // Get minimal progress info
   const progressText = `${currentSampleIndex + 1}.${currentStepIndex + 1}`;
 
+  // Format probability as percentage with 2 significant figures
+  const formatProbability = (prob) => {
+    const percentage = prob * 100;
+    if (percentage >= 10) {
+      return `${Math.round(percentage)}%`;
+    } else if (percentage >= 1) {
+      return `${percentage.toFixed(1)}%`;
+    } else {
+      return `${percentage.toFixed(2)}%`;
+    }
+  };
+
+  // Check if a prediction matches the actual token
+  const isCorrectPrediction = (token) => {
+    return token === currentStep.next_actual_token;
+  };
+
+  // Render prefix with underscore or with the actual token filled in
+  const renderPrefix = () => {
+    const blankMarker = "_______"; // 7 underscores for the blank
+    
+    if (showActualToken) {
+      return `${currentStep.prefix}${currentStep.next_actual_token}${blankMarker}`;
+    } else {
+      return `${currentStep.prefix}${blankMarker}`;
+    }
+  };
+
   return (
     React.createElement("div", { className: "app-container" },
       React.createElement("div", { className: "status-bar" },
@@ -151,34 +179,44 @@ function App() {
 
       React.createElement("div", { className: "content-container" },
         React.createElement("div", { className: "prefix-container" },
-          React.createElement("div", { className: "prefix-text" }, currentStep.prefix)
+          React.createElement("div", { className: "prefix-text" }, renderPrefix())
         ),
 
         showPredictions && 
           React.createElement("div", { className: "predictions-container" },
             React.createElement("div", { className: "models-grid" },
               React.createElement("div", { className: "model-predictions" },
-                React.createElement("h3", null, "GPT-2"),
+                React.createElement("h3", null, "GPT-2 (1.5B, 02/2019)"),
                 React.createElement("ul", { className: "prediction-list" },
                   currentStep.predictions.gpt2.map((pred, index) => 
-                    React.createElement("li", { key: `gpt2-${index}`, className: "prediction-item" },
-                      React.createElement("span", { className: "probability" }, pred.probability.toFixed(3)),
-                      React.createElement("span", { className: "token" }, pred.token)
+                    React.createElement("li", { 
+                      key: `gpt2-${index}`, 
+                      className: `prediction-item ${showActualToken && isCorrectPrediction(pred.token) ? "correct-prediction" : ""}`
+                    },
+                      React.createElement("span", { className: "probability" }, formatProbability(pred.probability)),
+                      React.createElement("span", { 
+                        className: `token ${showActualToken && isCorrectPrediction(pred.token) ? "correct-token" : ""}`
+                      }, pred.token)
                     )
                   )
                 )
               ),
 
               React.createElement("div", { className: "model-predictions" },
-                React.createElement("h3", null, "Llama 3.1"),
+                React.createElement("h3", null, "Llama 3.1 (405B, 06/2024)"),
                 React.createElement("ul", { className: "prediction-list" },
                   currentStep.predictions.llama3.map((pred, index) => 
-                    React.createElement("li", { key: `llama3-${index}`, className: "prediction-item" },
+                    React.createElement("li", { 
+                      key: `llama3-${index}`, 
+                      className: `prediction-item ${showActualToken && !pred.error && isCorrectPrediction(pred.token) ? "correct-prediction" : ""}`
+                    },
                       pred.error 
                         ? React.createElement("span", { className: "error" }, pred.error)
                         : React.createElement(React.Fragment, null,
-                            React.createElement("span", { className: "probability" }, pred.probability.toFixed(3)),
-                            React.createElement("span", { className: "token" }, pred.token)
+                            React.createElement("span", { className: "probability" }, formatProbability(pred.probability)),
+                            React.createElement("span", { 
+                              className: `token ${showActualToken && isCorrectPrediction(pred.token) ? "correct-token" : ""}`
+                            }, pred.token)
                           )
                     )
                   )

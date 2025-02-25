@@ -19,6 +19,7 @@
       --text-color: #333;
       --border-color: #ddd;
       --hover-color: #e9ecef;
+      --correct-color: #4caf50;
     }
     
     * {
@@ -171,6 +172,15 @@
       background-color: #f0f0f0;
       padding: 1px 4px;
       border-radius: 2px;
+    }
+    
+    .correct-prediction {
+      background-color: rgba(76, 175, 80, 0.1);
+    }
+    
+    .correct-token {
+      background-color: rgba(76, 175, 80, 0.3);
+      border: 1px solid var(--correct-color);
     }
     
     .error {
