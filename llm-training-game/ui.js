@@ -44,6 +44,7 @@ function formatProbability (prob) {
 
 // Replace with a single data structure
 const DATASET_INFO = [
+  { path: 'intro.json', title: 'introduction' },
   { path: 'wikipedia.json', title: 'wikipedia' },
   { path: 'addition.json', title: 'addition' },
   { path: 'multiply.json', title: 'multiplication' },
@@ -139,26 +140,16 @@ function appReducer(state, action) {
 
       const currentSample = currentDataset[state.currentSampleIndex];
       if (!currentSample || !currentSample.steps) return state;
-      
+
       const currentStep = currentSample.steps[state.currentStepIndex];
       if (!currentStep) return state;
 
-      // If we're not showing predictions yet
-      if (!state.showPredictions) {
-        // If this dataset has predictions, show them
-        if (currentStep.predictions) {
-          return {
-            ...state,
-            showPredictions: true
-          };
-        } 
-        // If no predictions, skip directly to showing the actual token
-        else {
-          return {
-            ...state,
-            showActualToken: true
-          };
-        }
+      // If we're not showing predictions yet, show them
+      if (!state.showPredictions && currentStep.predictions) {
+        return {
+          ...state,
+          showPredictions: true
+        };
       }
       // If we're showing predictions but not the actual token, show it
       else if (!state.showActualToken) {
@@ -580,31 +571,25 @@ function App() {
   const progressText = `${currentSampleIndex + 1}.${currentStepIndex + 1}`;
 
   // Render prefix with a styled blank marker
-  const renderPrefix = () => {
-    if (showActualToken) {
-      return (
-        <React.Fragment>
-          {currentStep.prefix}
-          <span style={{
-            backgroundColor: 'rgba(76, 175, 80, 0.2)',
-            borderBottom: `2px solid ${colors.accent}`,
-            padding: '0 2px',
-            display: 'inline-block'
-          }}>{currentStep.next_actual_token}</span>
-        </React.Fragment>
-      );
-    } else {
-      return (
-        <React.Fragment>
-          {currentStep.prefix}
-          <span style={{
-            borderBottom: '2px solid #333',
-            display: 'inline-block'
-          }}>{"\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"}</span>
-        </React.Fragment>
-      );
-    }
-  };
+  const renderPrefix = () =>
+    <React.Fragment>
+      {/* {/^[a-z]/.test(currentStep.prefix.trim()) ? '...' : ''} */}
+      ...
+      {currentStep.prefix}
+      {showActualToken ? (
+        <span style={{
+          backgroundColor: 'rgba(76, 175, 80, 0.2)',
+          borderBottom: `2px solid ${colors.accent}`,
+          padding: '0 2px',
+          display: 'inline-block'
+        }}>{currentStep.next_actual_token}</span>
+      ) : (
+        <span style={{
+          borderBottom: '2px solid #333',
+          display: 'inline-block'
+        }}>{"\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"}</span>
+      )}
+    </React.Fragment>;
 
   // Determine button styles based on state
   const getNavButtonStyle = (isForward, isDisabled) => {
@@ -708,7 +693,7 @@ function App() {
 
       <div style={{ padding: '15px', position: 'relative' }}>
         <div style={{ marginBottom: '15px' }}>
-          <h3 style={{ 
+          <h3 style={{
             marginBottom: '16px',
             padding: '10px',
             color: colors.text,
@@ -727,15 +712,15 @@ function App() {
           }}>{renderPrefix()}</div>
         </div>
 
-        <div style={{
-          marginTop: '15px',
-          padding: '10px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '3px',
-          border: `1px solid ${colors.border}`
-        }}>
-          {currentStep.predictions ? (
-            showPredictions ? (
+        {currentStep.predictions && (
+          <div style={{
+            marginTop: '15px',
+            padding: '10px',
+            backgroundColor: '#f8f9fa',
+            borderRadius: '3px',
+            border: `1px solid ${colors.border}`
+          }}>
+            {showPredictions ? (
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
@@ -758,7 +743,7 @@ function App() {
                   actualToken={currentStep.next_actual_token}
                 />
               </div>
-            ) : (
+              ) : (
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
@@ -775,17 +760,10 @@ function App() {
                   subtitle="405B params, 2024"
                 />
               </div>
-            )
-          ) : (
-            <div style={{
-              padding: '15px',
-              textAlign: 'center',
-              color: colors.text
-            }}>
-              <p>No model predictions available for this dataset.</p>
-            </div>
-          )}
-        </div>
+              )
+            }
+          </div>
+        )}
 
         <div style={{
           marginTop: '15px',

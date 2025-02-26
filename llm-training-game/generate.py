@@ -92,8 +92,8 @@ def get_hf_predictions(prefix, top_k=5, name=None, model=None, tokenizer=None):
 def get_gpt2_predictions(prefix, top_k=5):
     return get_hf_predictions(prefix, top_k, 'gpt2', gpt2_model, gpt2_tokenizer)
 
-def get_llama2_predictions(prefix, top_k=5):
-    return get_hf_predictions(prefix, top_k, 'llama2', llama2_model, llama2_tokenizer)
+# def get_llama2_predictions(prefix, top_k=5):
+#     return get_hf_predictions(prefix, top_k, 'llama2', llama2_model, llama2_tokenizer)
 
 def get_llama3_predictions(prefix, top_k=5):
     """Get top-k predictions from Llama 3.1"""
