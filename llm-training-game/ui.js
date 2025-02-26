@@ -666,6 +666,14 @@ function App() {
 
       <div style={{ padding: '15px', position: 'relative' }}>
         <div style={{ marginBottom: '15px' }}>
+          <h3 style={{ 
+            marginBottom: '16px',
+            padding: '10px',
+            color: colors.text,
+            fontSize: '20px',
+            fontWeight: '300',
+            textAlign: 'center'
+          }}>Fill in the blank.</h3>
           <div style={{
             fontFamily: 'monospace',
             fontSize: '16px',
