@@ -167,22 +167,60 @@ def process_literal_file(file_path, single_token=False, model_completions=True):
         for i, (prefix, answer) in enumerate(valid_problems):
             print(f"Processing problem {i+1}/{len(valid_problems)}: {prefix}")
             
-            # Create a sample with one step
+            # Create a sample with steps
             sample = {
                 "article_title": f"Problem {i+1}",
                 "sample_words": [prefix, answer],  # Just for reference
-                "steps": [{
-                    "prefix": prefix,
-                    "next_actual_token": answer,
-                }]
+                "steps": []
             }
             
-            # Add model predictions if requested
-            if model_completions:
-                sample["steps"][0]["predictions"] = {
-                    "gpt2": get_gpt2_predictions(prefix),
-                    "llama3": get_llama3_predictions(prefix)
+            if single_token:
+                # Single token mode - just create one step with the entire answer
+                step = {
+                    "prefix": prefix,
+                    "next_actual_token": answer,
                 }
+                
+                # Add model predictions if requested
+                if model_completions:
+                    step["predictions"] = {
+                        "gpt2": get_gpt2_predictions(prefix),
+                        "llama3": get_llama3_predictions(prefix)
+                    }
+                
+                sample["steps"].append(step)
+            else:
+                # Multi-token mode - tokenize the answer and create a step for each token
+                answer_tokens = enc.encode(answer)
+                current_prefix = prefix
+                
+                for j, token_id in enumerate(answer_tokens):
+                    # Decode the current token
+                    token_text = enc.decode([token_id])
+                    
+                    print(f"  Step {j+1}/{len(answer_tokens)}: prefix='{current_prefix}', next_token='{token_text}'")
+                    
+                    # Create a step for this token
+                    step = {
+                        "prefix": current_prefix,
+                        "next_actual_token": token_text,
+                    }
+                    
+                    # Add model predictions if requested
+                    if model_completions:
+                        step["predictions"] = {
+                            "gpt2": get_gpt2_predictions(current_prefix),
+                            "llama3": get_llama3_predictions(current_prefix)
+                        }
+                    
+                    sample["steps"].append(step)
+                    
+                    # Update the prefix for the next token
+                    current_prefix += token_text
+                    
+                    # Small delay to avoid rate limiting if getting predictions
+                    if model_completions:
+                        time.sleep(1)
             
             samples.append(sample)
             

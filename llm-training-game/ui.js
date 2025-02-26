@@ -574,7 +574,6 @@ function App() {
   const renderPrefix = () =>
     <React.Fragment>
       {/* {/^[a-z]/.test(currentStep.prefix.trim()) ? '...' : ''} */}
-      ...
       {currentStep.prefix}
       {showActualToken ? (
         <span style={{
@@ -700,7 +699,7 @@ function App() {
             fontSize: '20px',
             fontWeight: '300',
             textAlign: 'center'
-          }}>What word comes next?</h3>
+          }}>What comes next?</h3>
           <div style={{
             fontFamily: 'monospace',
             fontSize: '16px',

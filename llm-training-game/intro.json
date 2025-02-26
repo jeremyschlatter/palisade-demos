@@ -1,0 +1,65 @@
+[
+  {
+    "article_title": "Problem 1",
+    "sample_words": [
+      "To be or not to be, that is the",
+      " question"
+    ],
+    "steps": [
+      {
+        "prefix": "To be or not to be, that is the",
+        "next_actual_token": " question"
+      }
+    ]
+  },
+  {
+    "article_title": "Problem 2",
+    "sample_words": [
+      "one small step for man, one giant",
+      " leap for mankind"
+    ],
+    "steps": [
+      {
+        "prefix": "one small step for man, one giant",
+        "next_actual_token": " leap"
+      },
+      {
+        "prefix": "one small step for man, one giant leap",
+        "next_actual_token": " for"
+      },
+      {
+        "prefix": "one small step for man, one giant leap for",
+        "next_actual_token": " mankind"
+      }
+    ]
+  },
+  {
+    "article_title": "Problem 3",
+    "sample_words": [
+      "parked in the parking garage. I got a hot",
+      " chocolate from the coffee shop"
+    ],
+    "steps": [
+      {
+        "prefix": "parked in the parking garage. I got a hot",
+        "next_actual_token": " chocolate"
+      },
+      {
+        "prefix": "parked in the parking garage. I got a hot chocolate",
+        "next_actual_token": " from"
+      },
+      {
+        "prefix": "parked in the parking garage. I got a hot chocolate from",
+        "next_actual_token": " the"
+      },
+      {
+        "prefix": "parked in the parking garage. I got a hot chocolate from the",
+        "next_actual_token": " coffee"
+      },
+      {
+        "prefix": "parked in the parking garage. I got a hot chocolate from the coffee",
+        "next_actual_token": " shop"
+      }
+    ]
+  }
+]
