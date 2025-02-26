@@ -291,7 +291,7 @@ function ModelPredictions({ modelName, subtitle, predictions, showActualToken, a
               <span style={{
                 fontFamily: 'monospace',
                 backgroundColor: isCorrect ? 'rgba(76, 175, 80, 0.3)' : '#f0f0f0',
-                padding: '1px 4px',
+                padding: isCorrect ? '0px 3px' : '1px 4px',
                 borderRadius: '2px',
                 border: isCorrect ? `1px solid ${colors.correct}` : 'none'
               }}>{pred.token}</span>
@@ -310,12 +310,12 @@ function ModelPlaceholder({ modelName, subtitle }) {
       backgroundColor: 'white',
       borderRadius: '3px',
       padding: '10px',
-      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+      // boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
     }}>
       <h3 style={styles.modelTitle}>{modelName}</h3>
       <h4 style={styles.modelSubtitle}>{subtitle}</h4>
       <div style={{
-        height: '150px',
+        height: '136.5px',
         backgroundColor: '#f0f0f0',
         borderRadius: '3px',
         marginTop: '5px'
