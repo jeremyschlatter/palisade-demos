@@ -1,0 +1,415 @@
+[
+  {
+    "article_title": "Problem 1",
+    "sample_words": [
+      "13 + 4 =",
+      "17"
+    ],
+    "steps": [
+      {
+        "prefix": "13 + 4 = ",
+        "next_actual_token": "17",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": " 1",
+              "probability": 0.05002358555793762
+            },
+            {
+              "token": " 0",
+              "probability": 0.046520862728357315
+            },
+            {
+              "token": " 4",
+              "probability": 0.03722915053367615
+            },
+            {
+              "token": " 2",
+              "probability": 0.03538796678185463
+            },
+            {
+              "token": " 3",
+              "probability": 0.031690847128629684
+            }
+          ],
+          "llama3": [
+            {
+              "token": "17",
+              "probability": 0.7133785486221313
+            },
+            {
+              "token": "9",
+              "probability": 0.024410471320152283
+            },
+            {
+              "token": "13",
+              "probability": 0.02154216542840004
+            },
+            {
+              "token": "8",
+              "probability": 0.014805695973336697
+            },
+            {
+              "token": "16",
+              "probability": 0.01390866469591856
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "article_title": "Problem 2",
+    "sample_words": [
+      "5 + 7 =",
+      "12"
+    ],
+    "steps": [
+      {
+        "prefix": "5 + 7 = ",
+        "next_actual_token": "12",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": " 8",
+              "probability": 0.04830313101410866
+            },
+            {
+              "token": " 1",
+              "probability": 0.04812472686171532
+            },
+            {
+              "token": " 7",
+              "probability": 0.04059192165732384
+            },
+            {
+              "token": " 6",
+              "probability": 0.0377398282289505
+            },
+            {
+              "token": " 0",
+              "probability": 0.03756861016154289
+            }
+          ],
+          "llama3": [
+            {
+              "token": "12",
+              "probability": 0.5832808017730713
+            },
+            {
+              "token": "144",
+              "probability": 0.05425356328487396
+            },
+            {
+              "token": "11",
+              "probability": 0.05425356328487396
+            },
+            {
+              "token": "357",
+              "probability": 0.04225271940231323
+            },
+            {
+              "token": "23",
+              "probability": 0.03728789463639259
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "article_title": "Problem 3",
+    "sample_words": [
+      "4 * 58 =",
+      "232"
+    ],
+    "steps": [
+      {
+        "prefix": "4 * 58 = ",
+        "next_actual_token": "232",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": " 0",
+              "probability": 0.07688441872596741
+            },
+            {
+              "token": " 1",
+              "probability": 0.04839098080992699
+            },
+            {
+              "token": " 2",
+              "probability": 0.023268964141607285
+            },
+            {
+              "token": " 5",
+              "probability": 0.022830741479992867
+            },
+            {
+              "token": " 4",
+              "probability": 0.021476970985531807
+            }
+          ],
+          "llama3": [
+            {
+              "token": "232",
+              "probability": 0.7318296432495117
+            },
+            {
+              "token": "4",
+              "probability": 0.07713428139686584
+            },
+            {
+              "token": "2",
+              "probability": 0.041287004947662354
+            },
+            {
+              "token": "58",
+              "probability": 0.00921237375587225
+            },
+            {
+              "token": "1",
+              "probability": 0.008129891939461231
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "article_title": "Problem 4",
+    "sample_words": [
+      "7 * 89 =",
+      "623"
+    ],
+    "steps": [
+      {
+        "prefix": "7 * 89 = ",
+        "next_actual_token": "623",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": " 0",
+              "probability": 0.06356760114431381
+            },
+            {
+              "token": " 1",
+              "probability": 0.049483463168144226
+            },
+            {
+              "token": " 2",
+              "probability": 0.018166905269026756
+            },
+            {
+              "token": " (",
+              "probability": 0.017817972227931023
+            },
+            {
+              "token": " 89",
+              "probability": 0.01684669405221939
+            }
+          ],
+          "llama3": [
+            {
+              "token": "623",
+              "probability": 0.5300832390785217
+            },
+            {
+              "token": "7",
+              "probability": 0.07173895835876465
+            },
+            {
+              "token": "6",
+              "probability": 0.04930541664361954
+            },
+            {
+              "token": "3",
+              "probability": 0.020553557202219963
+            },
+            {
+              "token": "89",
+              "probability": 0.018138449639081955
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "article_title": "Problem 1",
+    "sample_words": [
+      "3 + 4 * 2 =",
+      "11"
+    ],
+    "steps": [
+      {
+        "prefix": "3 + 4 * 2 = ",
+        "next_actual_token": "11",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": " 1",
+              "probability": 0.08563242852687836
+            },
+            {
+              "token": " 4",
+              "probability": 0.07260768115520477
+            },
+            {
+              "token": " 0",
+              "probability": 0.06650260835886002
+            },
+            {
+              "token": " 3",
+              "probability": 0.0659780353307724
+            },
+            {
+              "token": " 2",
+              "probability": 0.06527257710695267
+            }
+          ],
+          "llama3": [
+            {
+              "token": "11",
+              "probability": 0.6177585124969482
+            },
+            {
+              "token": "3",
+              "probability": 0.25752007961273193
+            },
+            {
+              "token": "14",
+              "probability": 0.009985137730836868
+            },
+            {
+              "token": "10",
+              "probability": 0.009985137730836868
+            },
+            {
+              "token": "7",
+              "probability": 0.009985137730836868
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "article_title": "Problem 1",
+    "sample_words": [
+      "(3 + 4) * 2 =",
+      "14"
+    ],
+    "steps": [
+      {
+        "prefix": "(3 + 4) * 2 = ",
+        "next_actual_token": "14",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": " (",
+              "probability": 0.13521091639995575
+            },
+            {
+              "token": " 1",
+              "probability": 0.07034264504909515
+            },
+            {
+              "token": " 3",
+              "probability": 0.06745356321334839
+            },
+            {
+              "token": " 2",
+              "probability": 0.061165593564510345
+            },
+            {
+              "token": " 4",
+              "probability": 0.05369258299469948
+            }
+          ],
+          "llama3": [
+            {
+              "token": "14",
+              "probability": 0.3931347131729126
+            },
+            {
+              "token": "7",
+              "probability": 0.3061736226081848
+            },
+            {
+              "token": "3",
+              "probability": 0.12763217091560364
+            },
+            {
+              "token": "2",
+              "probability": 0.07741282880306244
+            },
+            {
+              "token": "12",
+              "probability": 0.017273135483264923
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "article_title": "Problem 2",
+    "sample_words": [
+      "((3 + 4) * 2) - 1 =",
+      "13"
+    ],
+    "steps": [
+      {
+        "prefix": "((3 + 4) * 2) - 1 = ",
+        "next_actual_token": "13",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": " (",
+              "probability": 0.14398030936717987
+            },
+            {
+              "token": " 1",
+              "probability": 0.08015423268079758
+            },
+            {
+              "token": " 0",
+              "probability": 0.07373570650815964
+            },
+            {
+              "token": " 2",
+              "probability": 0.059481553733348846
+            },
+            {
+              "token": " 3",
+              "probability": 0.0493706651031971
+            }
+          ],
+          "llama3": [
+            {
+              "token": "13",
+              "probability": 0.8551405668258667
+            },
+            {
+              "token": "7",
+              "probability": 0.029261302202939987
+            },
+            {
+              "token": "15",
+              "probability": 0.02582300826907158
+            },
+            {
+              "token": "9",
+              "probability": 0.01145889051258564
+            },
+            {
+              "token": "8",
+              "probability": 0.006950168404728174
+            }
+          ]
+        }
+      }
+    ]
+  }
+]
