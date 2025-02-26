@@ -712,7 +712,8 @@ function App() {
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
               gap: '15px',
-              marginTop: '10px'
+              marginTop: '10px',
+              opacity: currentSampleIndex == 0 && currentStepIndex == 0 ? 0.4 : 1,
             }}>
               <ModelPlaceholder
                 modelName="GPT-2"
