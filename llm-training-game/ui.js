@@ -152,36 +152,45 @@ function appReducer(state, action) {
         };
       }
       // If we're showing predictions but not the actual token, show it
-      else if (!state.showActualToken) {
+      if (!state.showActualToken) {
         return {
           ...state,
           showActualToken: true
         };
       }
       // If we're showing both (or just the actual token for datasets without predictions), advance to the next step or sample
-      else {
-        // If we're not at the last step of the current sample, go to next step
-        if (state.currentStepIndex < currentSample.steps.length - 1) {
-          return {
-            ...state,
-            currentStepIndex: state.currentStepIndex + 1,
-            showPredictions: false,
-            showActualToken: false
-          };
-        }
-        // If we're at the last step but not the last sample, go to the first step of the next sample
-        else if (state.currentSampleIndex < currentDataset.length - 1) {
-          return {
-            ...state,
-            currentSampleIndex: state.currentSampleIndex + 1,
-            currentStepIndex: 0,
-            showPredictions: false,
-            showActualToken: false
-          };
-        }
-        // If we're at the last step of the last sample, do nothing
-        return state;
+      // If we're not at the last step of the current sample, go to next step
+      if (state.currentStepIndex < currentSample.steps.length - 1) {
+        return {
+          ...state,
+          currentStepIndex: state.currentStepIndex + 1,
+          showPredictions: false,
+          showActualToken: false
+        };
       }
+      // If we're at the last step but not the last sample, go to the first step of the next sample
+      if (state.currentSampleIndex < currentDataset.length - 1) {
+        return {
+          ...state,
+          currentSampleIndex: state.currentSampleIndex + 1,
+          currentStepIndex: 0,
+          showPredictions: false,
+          showActualToken: false
+        };
+      }
+      // If we're at the last step of the last sample, go to next dataset.
+      if (state.currentDatasetIndex < DATASET_INFO.length - 1) {
+        return {
+          ...state,
+          currentDatasetIndex: state.currentDatasetIndex + 1,
+          currentSampleIndex: 0,
+          currentStepIndex: 0,
+          showPredictions: false,
+          showActualToken: false
+        };
+      }
+      // Otherwise do nothing.
+      return state;
     }
 
     case ACTION_TYPES.BACKWARD: {
@@ -190,7 +199,7 @@ function appReducer(state, action) {
 
       const currentSample = currentDataset[state.currentSampleIndex];
       if (!currentSample || !currentSample.steps) return state;
-      
+
       const currentStep = currentSample.steps[state.currentStepIndex];
       if (!currentStep) return state;
 
@@ -212,45 +221,56 @@ function appReducer(state, action) {
         }
       }
       // If showing predictions but not the actual token, hide predictions
-      else if (state.showPredictions) {
+      if (state.showPredictions) {
         return {
           ...state,
           showPredictions: false
         };
       }
       // If not showing anything, go to the previous step or sample
-      else {
-        // If we're not at the first step of the current sample, go to previous step
-        if (state.currentStepIndex > 0) {
-          const prevStep = currentSample.steps[state.currentStepIndex - 1];
-          const prevHasPredictions = prevStep && !!prevStep.predictions;
-          
-          return {
-            ...state,
-            currentStepIndex: state.currentStepIndex - 1,
-            showPredictions: prevHasPredictions,
-            showActualToken: true
-          };
-        }
-        // If we're at the first step but not the first sample, go to the last step of the previous sample
-        else if (state.currentSampleIndex > 0) {
-          const prevSample = currentDataset[state.currentSampleIndex - 1];
-          if (!prevSample || !prevSample.steps) return state;
+      // If we're not at the first step of the current sample, go to previous step
+      if (state.currentStepIndex > 0) {
+        const prevStep = currentSample.steps[state.currentStepIndex - 1];
+        const prevHasPredictions = prevStep && !!prevStep.predictions;
 
-          const prevStep = prevSample.steps[prevSample.steps.length - 1];
-          const prevHasPredictions = prevStep && !!prevStep.predictions;
-          
-          return {
-            ...state,
-            currentSampleIndex: state.currentSampleIndex - 1,
-            currentStepIndex: prevSample.steps.length - 1,
-            showPredictions: prevHasPredictions,
-            showActualToken: true
-          };
-        }
-        // If we're at the first step of the first sample, do nothing
-        return state;
+        return {
+          ...state,
+          currentStepIndex: state.currentStepIndex - 1,
+          showPredictions: prevHasPredictions,
+          showActualToken: true
+        };
       }
+      // If we're at the first step but not the first sample, go to the last step of the previous sample
+      if (state.currentSampleIndex > 0) {
+        const prevSample = currentDataset[state.currentSampleIndex - 1];
+        if (!prevSample || !prevSample.steps) return state;
+
+        const prevStep = prevSample.steps[prevSample.steps.length - 1];
+        const prevHasPredictions = prevStep && !!prevStep.predictions;
+
+        return {
+          ...state,
+          currentSampleIndex: state.currentSampleIndex - 1,
+          currentStepIndex: prevSample.steps.length - 1,
+          showPredictions: prevHasPredictions,
+          showActualToken: true
+        };
+      }
+      // If we're at the first step of the first sample, go to previous dataset.
+      if (state.currentDatasetIndex > 0) {
+        const newIndex = state.currentDatasetIndex - 1;
+        const newDataset = state.datasets[DATASET_INFO[newIndex].path];
+        return {
+          ...state,
+          currentDatasetIndex: newIndex,
+          currentSampleIndex: newDataset.length - 1,
+          currentStepIndex: newDataset[newDataset.length - 1].steps.length - 1,
+          showPredictions: true,
+          showActualToken: true
+        };
+      }
+      // Otherwise do nothing.
+      return state;
     }
 
     case ACTION_TYPES.RESET_STATE:
@@ -406,7 +426,7 @@ function App() {
   const handleDatasetChange = (event) => {
     const selectedTitle = event.target.value;
     const newIndex = DATASET_INFO.findIndex(dataset => dataset.title === selectedTitle);
-    
+
     if (newIndex !== -1 && newIndex !== currentDatasetIndex) {
       dispatch({ type: ACTION_TYPES.CHANGE_DATASET, payload: newIndex });
     }
@@ -422,22 +442,10 @@ function App() {
         // Get current sample and step
         const currentSample = data[currentSampleIndex];
         if (!currentSample || !currentSample.steps) return;
-        
+
         const currentStep = currentSample.steps[currentStepIndex];
         if (!currentStep) return;
-        
-        const hasPredictions = !!currentStep.predictions;
-
-        // Check if we're at the last phase of the last step of the last sample
-        const isLastPhase = currentSampleIndex === data.length - 1 &&
-                           currentStepIndex === currentSample.steps.length - 1 &&
-                           ((hasPredictions && showPredictions && showActualToken) || 
-                            (!hasPredictions && showActualToken));
-
-        // Only call handleForward if we're not at the last phase
-        if (!isLastPhase) {
-          handleForward();
-        }
+        handleForward();
       } else if (event.key === 'ArrowLeft') {
         handleBackward();
       } else if (event.key === 'ArrowUp') {
@@ -619,8 +627,15 @@ function App() {
   const isLastStep = currentSample &&
                     currentSample.steps &&
                     currentStepIndex === currentSample.steps.length - 1 &&
-                    ((currentStep.predictions && showPredictions && showActualToken) || 
-                     (!currentStep.predictions && showActualToken));
+                    ((currentStep.predictions && showPredictions && showActualToken) ||
+                     (!currentStep.predictions && showActualToken)) &&
+                    currentSampleIndex === data.length - 1 &&
+                    state.currentDatasetIndex >= DATASET_INFO.length - 1;
+  const isFirstStep = currentSampleIndex === 0 &&
+                      currentStepIndex === 0 &&
+                      !showPredictions &&
+                      !showActualToken &&
+                      state.currentDatasetIndex === 0;
 
   return (
     <div style={{
@@ -641,9 +656,9 @@ function App() {
         alignItems: 'center'
       }}>
         <button
-          style={getNavButtonStyle(false, currentSampleIndex === 0 && currentStepIndex === 0 && !showPredictions && !showActualToken)}
+          style={getNavButtonStyle(false, isFirstStep)}
           onClick={handleBackward}
-          disabled={currentSampleIndex === 0 && currentStepIndex === 0 && !showPredictions && !showActualToken}
+          disabled={isFirstStep}
         >
           ←
         </button>
@@ -682,9 +697,9 @@ function App() {
         </div>
 
         <button
-          style={getNavButtonStyle(true, isLastStep && currentSampleIndex === data.length - 1)}
+          style={getNavButtonStyle(true, isLastStep)}
           onClick={handleForward}
-          disabled={isLastStep && currentSampleIndex === data.length - 1}
+          disabled={isLastStep}
         >
           →
         </button>
