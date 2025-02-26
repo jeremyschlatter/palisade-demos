@@ -137,12 +137,28 @@ function appReducer(state, action) {
       const currentDataset = getCurrentDatasetFromState(state);
       if (!currentDataset) return state;
 
-      // If we're not showing predictions yet, show them
+      const currentSample = currentDataset[state.currentSampleIndex];
+      if (!currentSample || !currentSample.steps) return state;
+      
+      const currentStep = currentSample.steps[state.currentStepIndex];
+      if (!currentStep) return state;
+
+      // If we're not showing predictions yet
       if (!state.showPredictions) {
-        return {
-          ...state,
-          showPredictions: true
-        };
+        // If this dataset has predictions, show them
+        if (currentStep.predictions) {
+          return {
+            ...state,
+            showPredictions: true
+          };
+        } 
+        // If no predictions, skip directly to showing the actual token
+        else {
+          return {
+            ...state,
+            showActualToken: true
+          };
+        }
       }
       // If we're showing predictions but not the actual token, show it
       else if (!state.showActualToken) {
@@ -151,11 +167,8 @@ function appReducer(state, action) {
           showActualToken: true
         };
       }
-      // If we're showing both, advance to the next step or sample
+      // If we're showing both (or just the actual token for datasets without predictions), advance to the next step or sample
       else {
-        const currentSample = currentDataset[state.currentSampleIndex];
-        if (!currentSample || !currentSample.steps) return state;
-
         // If we're not at the last step of the current sample, go to next step
         if (state.currentStepIndex < currentSample.steps.length - 1) {
           return {
@@ -184,12 +197,28 @@ function appReducer(state, action) {
       const currentDataset = getCurrentDatasetFromState(state);
       if (!currentDataset) return state;
 
-      // If showing the actual token, go back to just showing predictions
+      const currentSample = currentDataset[state.currentSampleIndex];
+      if (!currentSample || !currentSample.steps) return state;
+      
+      const currentStep = currentSample.steps[state.currentStepIndex];
+      if (!currentStep) return state;
+
+      const hasPredictions = !!currentStep.predictions;
+
+      // If showing the actual token, go back to just showing predictions (or to initial state if no predictions)
       if (state.showActualToken) {
-        return {
-          ...state,
-          showActualToken: false
-        };
+        if (hasPredictions) {
+          return {
+            ...state,
+            showActualToken: false
+          };
+        } else {
+          return {
+            ...state,
+            showActualToken: false,
+            showPredictions: false
+          };
+        }
       }
       // If showing predictions but not the actual token, hide predictions
       else if (state.showPredictions) {
@@ -202,10 +231,13 @@ function appReducer(state, action) {
       else {
         // If we're not at the first step of the current sample, go to previous step
         if (state.currentStepIndex > 0) {
+          const prevStep = currentSample.steps[state.currentStepIndex - 1];
+          const prevHasPredictions = prevStep && !!prevStep.predictions;
+          
           return {
             ...state,
             currentStepIndex: state.currentStepIndex - 1,
-            showPredictions: true,
+            showPredictions: prevHasPredictions,
             showActualToken: true
           };
         }
@@ -214,11 +246,14 @@ function appReducer(state, action) {
           const prevSample = currentDataset[state.currentSampleIndex - 1];
           if (!prevSample || !prevSample.steps) return state;
 
+          const prevStep = prevSample.steps[prevSample.steps.length - 1];
+          const prevHasPredictions = prevStep && !!prevStep.predictions;
+          
           return {
             ...state,
             currentSampleIndex: state.currentSampleIndex - 1,
             currentStepIndex: prevSample.steps.length - 1,
-            showPredictions: true,
+            showPredictions: prevHasPredictions,
             showActualToken: true
           };
         }
@@ -390,16 +425,23 @@ function App() {
   React.useEffect(() => {
     const handleKeyDown = (event) => {
       const data = getCurrentDataset();
+      if (!data) return;
 
       if (event.key === 'ArrowRight') {
+        // Get current sample and step
+        const currentSample = data[currentSampleIndex];
+        if (!currentSample || !currentSample.steps) return;
+        
+        const currentStep = currentSample.steps[currentStepIndex];
+        if (!currentStep) return;
+        
+        const hasPredictions = !!currentStep.predictions;
+
         // Check if we're at the last phase of the last step of the last sample
-        const isLastPhase = data &&
-                           currentSampleIndex === data.length - 1 &&
-                           data[currentSampleIndex] &&
-                           data[currentSampleIndex].steps &&
-                           currentStepIndex === data[currentSampleIndex].steps.length - 1 &&
-                           showPredictions &&
-                           showActualToken;
+        const isLastPhase = currentSampleIndex === data.length - 1 &&
+                           currentStepIndex === currentSample.steps.length - 1 &&
+                           ((hasPredictions && showPredictions && showActualToken) || 
+                            (!hasPredictions && showActualToken));
 
         // Only call handleForward if we're not at the last phase
         if (!isLastPhase) {
@@ -593,8 +635,8 @@ function App() {
   const isLastStep = currentSample &&
                     currentSample.steps &&
                     currentStepIndex === currentSample.steps.length - 1 &&
-                    showPredictions &&
-                    showActualToken;
+                    ((currentStep.predictions && showPredictions && showActualToken) || 
+                     (!currentStep.predictions && showActualToken));
 
   return (
     <div style={{
@@ -692,45 +734,55 @@ function App() {
           borderRadius: '3px',
           border: `1px solid ${colors.border}`
         }}>
-          {showPredictions ? (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '15px',
-              marginTop: '10px'
-            }}>
-              <ModelPredictions
-                modelName="GPT-2"
-                subtitle="1.5B params, 2019"
-                predictions={currentStep.predictions.gpt2}
-                showActualToken={showActualToken}
-                actualToken={currentStep.next_actual_token}
-              />
+          {currentStep.predictions ? (
+            showPredictions ? (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                gap: '15px',
+                marginTop: '10px'
+              }}>
+                <ModelPredictions
+                  modelName="GPT-2"
+                  subtitle="1.5B params, 2019"
+                  predictions={currentStep.predictions.gpt2}
+                  showActualToken={showActualToken}
+                  actualToken={currentStep.next_actual_token}
+                />
 
-              <ModelPredictions
-                modelName="Llama 3.1"
-                subtitle="405B params, 2024"
-                predictions={currentStep.predictions.llama3}
-                showActualToken={showActualToken}
-                actualToken={currentStep.next_actual_token}
-              />
-            </div>
+                <ModelPredictions
+                  modelName="Llama 3.1"
+                  subtitle="405B params, 2024"
+                  predictions={currentStep.predictions.llama3}
+                  showActualToken={showActualToken}
+                  actualToken={currentStep.next_actual_token}
+                />
+              </div>
+            ) : (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                gap: '15px',
+                marginTop: '10px',
+                opacity: currentSampleIndex == 0 && currentStepIndex == 0 ? 0.4 : 1,
+              }}>
+                <ModelPlaceholder
+                  modelName="GPT-2"
+                  subtitle="1.5B params, 2019"
+                />
+                <ModelPlaceholder
+                  modelName="Llama 3.1"
+                  subtitle="405B params, 2024"
+                />
+              </div>
+            )
           ) : (
             <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '15px',
-              marginTop: '10px',
-              opacity: currentSampleIndex == 0 && currentStepIndex == 0 ? 0.4 : 1,
+              padding: '15px',
+              textAlign: 'center',
+              color: colors.text
             }}>
-              <ModelPlaceholder
-                modelName="GPT-2"
-                subtitle="1.5B params, 2019"
-              />
-              <ModelPlaceholder
-                modelName="Llama 3.1"
-                subtitle="405B params, 2024"
-              />
+              <p>No model predictions available for this dataset.</p>
             </div>
           )}
         </div>
