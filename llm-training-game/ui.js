@@ -41,21 +41,14 @@ function formatProbability (prob) {
   }
 };
 
-// Available datasets
-const DATASETS = [
-  'addition.json',
-  'multiply.json',
-  'specification-gaming.json',
-  'wikipedia.json'
-];
 
-// Map dataset filenames to user-friendly titles
-const DATASET_TITLES = {
-  'addition.json': 'addition',
-  'multiply.json': 'multiplication',
-  'specification-gaming.json': 'specification gaming paper',
-  'wikipedia.json': 'wikipedia',
-};
+// Replace with a single data structure
+const DATASET_INFO = [
+  { path: 'wikipedia.json', title: 'wikipedia' },
+  { path: 'addition.json', title: 'addition' },
+  { path: 'multiply.json', title: 'multiplication' },
+  { path: 'specification-gaming.json', title: 'specification gaming paper' },
+];
 
 // Define action types for reducer
 const ACTION_TYPES = {
@@ -115,7 +108,7 @@ function appReducer(state, action) {
       };
 
     case ACTION_TYPES.NEXT_DATASET:
-      if (state.currentDatasetIndex >= DATASETS.length - 1) {
+      if (state.currentDatasetIndex >= DATASET_INFO.length - 1) {
         return state;
       }
       return {
@@ -250,11 +243,11 @@ function appReducer(state, action) {
 
 // Helper function to get current dataset from state
 function getCurrentDatasetFromState(state) {
-  const currentDatasetName = DATASETS[state.currentDatasetIndex];
-  const dataset = state.datasets[currentDatasetName];
+  const currentDatasetInfo = DATASET_INFO[state.currentDatasetIndex];
+  const dataset = state.datasets[currentDatasetInfo.path];
 
   if (!dataset) {
-    console.error(`Dataset not found or is null: ${currentDatasetName}`);
+    console.error(`Dataset not found or is null: ${currentDatasetInfo.path}`);
   }
 
   return dataset;
@@ -350,18 +343,18 @@ function App() {
 
   // Load all datasets on component mount
   React.useEffect(() => {
-    const fetchPromises = DATASETS.map(dataset =>
-      fetch(dataset)
+    const fetchPromises = DATASET_INFO.map(dataset =>
+      fetch(dataset.path)
         .then(response => {
           if (!response.ok) {
-            throw new Error(`Failed to load ${dataset}`);
+            throw new Error(`Failed to load ${dataset.path}`);
           }
           return response.json();
         })
-        .then(data => ({ [dataset]: data }))
+        .then(data => ({ [dataset.path]: data }))
         .catch(err => {
-          console.error(`Error loading ${dataset}:`, err);
-          return { [dataset]: null };
+          console.error(`Error loading ${dataset.path}:`, err);
+          return { [dataset.path]: null };
         })
     );
 
@@ -387,10 +380,7 @@ function App() {
   // Handle dataset change
   const handleDatasetChange = (event) => {
     const selectedTitle = event.target.value;
-    const selectedFilename = Object.keys(DATASET_TITLES).find(
-      key => DATASET_TITLES[key] === selectedTitle
-    );
-    const newIndex = DATASETS.indexOf(selectedFilename);
+    const newIndex = DATASET_INFO.findIndex(dataset => dataset.title === selectedTitle);
     
     if (newIndex !== -1 && newIndex !== currentDatasetIndex) {
       dispatch({ type: ACTION_TYPES.CHANGE_DATASET, payload: newIndex });
@@ -511,7 +501,7 @@ function App() {
           <label htmlFor="dataset-select" style={{ marginRight: '10px' }}>Dataset:</label>
           <select
             id="dataset-select"
-            value={DATASET_TITLES[DATASETS[currentDatasetIndex]]}
+            value={DATASET_INFO[currentDatasetIndex].title}
             onChange={handleDatasetChange}
             style={{
               padding: '8px',
@@ -522,8 +512,8 @@ function App() {
               fontSize: '14px'
             }}
           >
-            {DATASETS.map(dataset => (
-              <option key={dataset} value={DATASET_TITLES[dataset]}>{DATASET_TITLES[dataset]}</option>
+            {DATASET_INFO.map(dataset => (
+              <option key={dataset.path} value={dataset.title}>{dataset.title}</option>
             ))}
           </select>
         </div>
@@ -647,7 +637,7 @@ function App() {
           }}>{progressText}</span>
 
           <select
-            value={DATASET_TITLES[DATASETS[currentDatasetIndex]]}
+            value={DATASET_INFO[currentDatasetIndex].title}
             onChange={handleDatasetChange}
             style={{
               padding: '4px 8px',
@@ -660,8 +650,8 @@ function App() {
               cursor: 'pointer'
             }}
           >
-            {DATASETS.map(dataset => (
-              <option key={dataset} value={DATASET_TITLES[dataset]}>{DATASET_TITLES[dataset]}</option>
+            {DATASET_INFO.map(dataset => (
+              <option key={dataset.path} value={dataset.title}>{dataset.title}</option>
             ))}
           </select>
         </div>
