@@ -123,42 +123,9 @@ def get_llama3_predictions(prefix, top_k=5):
     except Exception as e:
         return [{"error": str(e)}]
 
-def generate_step_data(words, prefix_size):
-    """Generate prediction data for a single step"""
-    prefix = ''.join(words[:prefix_size])
-    
-    result = {
-        "prefix": prefix,
-        "next_actual_token": words[prefix_size] if prefix_size < len(words) else "END",
-        "predictions": {
-            "gpt2": get_gpt2_predictions(prefix),
-            "llama3": get_llama3_predictions(prefix),
-            # "llama2": get_llama2_predictions(prefix)
-        }
-    }
-    
-    # Uncomment to add Llama-2 predictions if available
-    # result["predictions"]["llama2"] = get_llama2_predictions(prefix)
-    
-    return result
-
-def get_text_from_file(file_path):
-    """Read text from a file"""
-    print(f"Reading text from file: {file_path}")
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            text = f.read()
-        return {
-            'title': os.path.basename(file_path),
-            'text': text
-        }
-    except Exception as e:
-        print(f"Error reading file: {e}")
-        exit(1)
-
-def process_math_file(file_path):
-    """Process a math file where each line has format 'prefix|answer'"""
-    print(f"Processing math file: {file_path}")
+def process_literal_file(file_path, single_token=False, model_completions=True):
+    """Process a literal file where each line has format 'prefix|answer'"""
+    print(f"Processing literal file: {file_path}")
     samples = []
     
     try:
@@ -185,15 +152,16 @@ def process_math_file(file_path):
             prefix = parts[0]
             answer = parts[1]
             
-            # Check if answer is a single token
-            answer_tokens = enc.encode(answer)
-            if len(answer_tokens) != 1:
-                print(f"Error on line {i+1}: Answer '{answer}' is not a single token (it's {len(answer_tokens)} tokens)")
-                exit(1)
+            # Check if answer is a single token, if required
+            if single_token:
+                answer_tokens = enc.encode(answer)
+                if len(answer_tokens) != 1:
+                    print(f"Error on line {i+1}: Answer '{answer}' is not a single token (it's {len(answer_tokens)} tokens)")
+                    exit(1)
             
             valid_problems.append((prefix, answer))
         
-        print(f"Validation complete. Found {len(valid_problems)} valid math problems.")
+        print(f"Validation complete. Found {len(valid_problems)} valid problems.")
         
         # Now generate predictions for each valid problem
         for i, (prefix, answer) in enumerate(valid_problems):
@@ -201,17 +169,20 @@ def process_math_file(file_path):
             
             # Create a sample with one step
             sample = {
-                "article_title": f"Math Problem {i+1}",
+                "article_title": f"Problem {i+1}",
                 "sample_words": [prefix, answer],  # Just for reference
                 "steps": [{
                     "prefix": prefix,
                     "next_actual_token": answer,
-                    "predictions": {
-                        "gpt2": get_gpt2_predictions(prefix),
-                        "llama3": get_llama3_predictions(prefix)
-                    }
                 }]
             }
+            
+            # Add model predictions if requested
+            if model_completions:
+                sample["steps"][0]["predictions"] = {
+                    "gpt2": get_gpt2_predictions(prefix),
+                    "llama3": get_llama3_predictions(prefix)
+                }
             
             samples.append(sample)
             
@@ -220,15 +191,48 @@ def process_math_file(file_path):
             
         return samples
     except Exception as e:
-        print(f"Error processing math file: {e}")
+        print(f"Error processing literal file: {e}")
         exit(1)
 
-def generate_sample_data(num_samples=10, steps_per_sample=10, min_sample_length=40, file_path=None, mode=None):
+def generate_step_data(words, prefix_size, model_completions=True):
+    """Generate prediction data for a single step"""
+    prefix = ''.join(words[:prefix_size])
+    
+    result = {
+        "prefix": prefix,
+        "next_actual_token": words[prefix_size] if prefix_size < len(words) else "END",
+    }
+    
+    # Add model predictions if requested
+    if model_completions:
+        result["predictions"] = {
+            "gpt2": get_gpt2_predictions(prefix),
+            "llama3": get_llama3_predictions(prefix),
+            # "llama2": get_llama2_predictions(prefix)
+        }
+    
+    return result
+
+def get_text_from_file(file_path):
+    """Read text from a file"""
+    print(f"Reading text from file: {file_path}")
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            text = f.read()
+        return {
+            'title': os.path.basename(file_path),
+            'text': text
+        }
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        exit(1)
+
+def generate_sample_data(num_samples=10, steps_per_sample=10, min_sample_length=40, file_path=None, mode=None, single_token=False, model_completions=True):
     """Generate data for multiple samples with multiple steps each"""
     
-    # Special handling for math mode
-    if mode == 'math' and file_path:
-        return process_math_file(file_path)
+    # Special handling for literal mode
+    if mode == 'literal' and file_path:
+        return process_literal_file(file_path, single_token, model_completions)
     
     all_samples = []
     
@@ -259,7 +263,7 @@ def generate_sample_data(num_samples=10, steps_per_sample=10, min_sample_length=
             if prefix_size >= len(sample_words):
                 break
                 
-            step_data = generate_step_data(sample_words, prefix_size)
+            step_data = generate_step_data(sample_words, prefix_size, model_completions)
             steps.append(step_data)
         
         # Add sample data
@@ -282,13 +286,17 @@ def main():
     parser.add_argument('--steps_per_sample', type=int, default=10, help='Number of steps per sample')
     parser.add_argument('--output', type=str, default='prediction_data.json', help='Output JSON file')
     parser.add_argument('--file', type=str, help='Path to a text file to use instead of Wikipedia articles')
-    parser.add_argument('--mode', type=str, choices=['wiki', 'file', 'math'], default='wiki', 
-                        help='Mode to use: wiki (default), file (text file), or math (problems with answers)')
+    parser.add_argument('--mode', type=str, choices=['wiki', 'file', 'literal'], default='wiki', 
+                        help='Mode to use: wiki (default), file (text file), or literal (problems with answers)')
+    parser.add_argument('--single_token', action='store_true', help='In literal mode, require answers to be a single token')
+    parser.add_argument('--no-model-completions', dest='model_completions', action='store_false', 
+                        help='Skip generating model completions for steps')
+    parser.set_defaults(model_completions=True)
     args = parser.parse_args()
     
     # Validate arguments
-    if args.mode == 'math' and not args.file:
-        print("Error: --file argument is required when using --mode=math")
+    if args.mode == 'literal' and not args.file:
+        print("Error: --file argument is required when using --mode=literal")
         exit(1)
     
     if args.mode == 'file' and not args.file:
@@ -296,18 +304,25 @@ def main():
         exit(1)
     
     # Set file path based on mode
-    file_path = args.file if args.mode in ['file', 'math'] else None
+    file_path = args.file if args.mode in ['file', 'literal'] else None
     
     # Determine source text description
     if args.mode == 'wiki':
         source_text = "Wikipedia articles"
     elif args.mode == 'file':
         source_text = f"text from {args.file}"
-    else:  # math mode
-        source_text = f"math problems from {args.file}"
+    else:  # literal mode
+        source_text = f"problems from {args.file}"
     
     print(f"Generating data from {source_text}...")
-    data = generate_sample_data(args.num_samples, args.steps_per_sample, file_path=file_path, mode=args.mode)
+    data = generate_sample_data(
+        args.num_samples, 
+        args.steps_per_sample, 
+        file_path=file_path, 
+        mode=args.mode,
+        single_token=args.single_token,
+        model_completions=args.model_completions
+    )
     
     # Save to JSON file
     with open(args.output, 'w') as f:

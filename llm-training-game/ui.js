@@ -715,7 +715,7 @@ function App() {
             fontSize: '20px',
             fontWeight: '300',
             textAlign: 'center'
-          }}>Fill in the blank.</h3>
+          }}>What word comes next?</h3>
           <div style={{
             fontFamily: 'monospace',
             fontSize: '16px',
