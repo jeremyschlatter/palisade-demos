@@ -310,13 +310,12 @@ function ModelPlaceholder({ modelName, subtitle }) {
       backgroundColor: 'white',
       borderRadius: '3px',
       padding: '10px',
-      // boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
     }}>
       <h3 style={styles.modelTitle}>{modelName}</h3>
       <h4 style={styles.modelSubtitle}>{subtitle}</h4>
       <div style={{
         height: '136.5px',
-        backgroundColor: '#f0f0f0',
         borderRadius: '3px',
         marginTop: '5px'
       }}></div>
@@ -709,22 +708,20 @@ function App() {
               />
             </div>
           ) : (
-            <div style={{ opacity: 0.4 }}>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                gap: '15px',
-                marginTop: '10px'
-              }}>
-                <ModelPlaceholder
-                  modelName="GPT-2"
-                  subtitle="1.5B params, 2019"
-                />
-                <ModelPlaceholder
-                  modelName="Llama 3.1"
-                  subtitle="405B params, 2024"
-                />
-              </div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '15px',
+              marginTop: '10px'
+            }}>
+              <ModelPlaceholder
+                modelName="GPT-2"
+                subtitle="1.5B params, 2019"
+              />
+              <ModelPlaceholder
+                modelName="Llama 3.1"
+                subtitle="405B params, 2024"
+              />
             </div>
           )}
         </div>
