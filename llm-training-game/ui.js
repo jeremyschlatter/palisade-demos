@@ -46,8 +46,7 @@ function formatProbability (prob) {
 const DATASET_INFO = [
   { path: 'intro.json', title: 'introduction' },
   { path: 'wikipedia.json', title: 'wikipedia' },
-  { path: 'addition.json', title: 'addition' },
-  { path: 'multiply.json', title: 'multiplication' },
+  { path: 'math-full.json', title: 'math' },
   { path: 'specification-gaming.json', title: 'specification gaming paper' },
 ];
 
