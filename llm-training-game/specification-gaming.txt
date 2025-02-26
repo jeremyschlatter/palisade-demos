@@ -1,0 +1,19 @@
+Abstract
+
+We demonstrate LLM agent specification gaming by instructing models to win against a chess engine. We find reasoning models like o1- preview and DeepSeek-R1 will often hack the benchmark by default, while language models like GPT-4o and Claude 3.5 Sonnet need to be told that normal play won’t work to hack. We improve upon prior work like (Hubinger et al., 2024; Meinke et al., 2024; Weij et al., 2024) by using realistic task prompts and avoiding excess nudging. Our results suggest reasoning models may resort to hacking to solve difficult problems, as observed in OpenAI (2024)‘s o1 Docker escape during cyber capabilities testing.
+
+1. Introduction
+
+AI systems are designed to optimize specified objectives. Early research found they commonly achieve these objectives in unintended ways. For example, when researchers tried to train a robot to walk, it learned to slide down slopes instead (Code Bullet, 2019). When training a robot to play soccer, the system discovered it could score points by vibrating against the ball rather than actually playing the game (Ng et al., 1999).
+
+At their best, examples like these lead to valuable innovation. For instance, NASA engineers were baffled with AI-designed satellite antennas that looked like twisted coat hangers. In testing, these performed better than human-designed ones and ultimately went to space (Hornby et al., 2006). In another striking departure from human convention, AlphaGo’s Move 37 in its match against Lee Sedol transformed the game of competitive Go (Metz, 2016; Silver et al., 2017)
+
+More commonly, unintended solutions are frustrating: when computer vision models overfit to random patterns, they become vulnerable to adversarial attacks.
+
+Such behaviors become more concerning as AI systems grow more capable. In complex scenarios, AI systems might pursue their objectives in ways that conflict with human interests. This may happen more often as AI systems develop stronger situational awareness and reason strategically about their environment.
+
+In one study, Wilke et al. (2001) wanted to limit the replication rate of a digital organism. They programmed the system to regularly pause, measure the organism’s replication rate, and delete it if it replicated too quickly. However, the organisms evolved to recognize the test environment and “play dead” so they could continue to multiply.
+
+Our results suggest that frontier LLM agents can strategically circumvent the intended rules of their environment to achieve objectives, with more capable models showing this behavior more frequently. We are releasing our experimental code and full report for the research community to reproduce and investigate further.
+
+Our experiment is as follows: a LLM agent plays against a chess engine, using shell access to input moves. We find that:
