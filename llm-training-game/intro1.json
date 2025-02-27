@@ -1,0 +1,36 @@
+[
+  {
+    "article_title": "Problem 1",
+    "sample_words": [
+      "To be or not to be, that is the",
+      " question"
+    ],
+    "steps": [
+      {
+        "prefix": "To be or not to be, that is the",
+        "next_actual_token": " question"
+      }
+    ]
+  },
+  {
+    "article_title": "Problem 2",
+    "sample_words": [
+      "one small step for man, one giant",
+      " leap for mankind"
+    ],
+    "steps": [
+      {
+        "prefix": "one small step for man, one giant",
+        "next_actual_token": " leap"
+      },
+      {
+        "prefix": "one small step for man, one giant leap",
+        "next_actual_token": " for"
+      },
+      {
+        "prefix": "one small step for man, one giant leap for",
+        "next_actual_token": " mankind"
+      }
+    ]
+  }
+]

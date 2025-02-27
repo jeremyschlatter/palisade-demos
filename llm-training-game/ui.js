@@ -44,7 +44,8 @@ function formatProbability (prob) {
 
 // Replace with a single data structure
 const DATASET_INFO = [
-  { path: 'intro.json', title: 'introduction' },
+  { path: 'intro1.json', title: 'intro' },
+  { path: 'intro2.json', title: 'intro with models' },
   { path: 'wikipedia.json', title: 'wikipedia' },
   { path: 'math-full.json', title: 'math' },
   { path: 'specification-gaming.json', title: 'specification gaming paper' },

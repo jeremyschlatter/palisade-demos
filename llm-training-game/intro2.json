@@ -1,0 +1,61 @@
+[
+  {
+    "article_title": "Problem 1",
+    "sample_words": [
+      "I went to the store to buy some",
+      " milk"
+    ],
+    "steps": [
+      {
+        "prefix": "I went to the store to buy some",
+        "next_actual_token": " milk",
+        "predictions": {
+          "gpt2": [
+            {
+              "token": " food",
+              "probability": 0.03287463262677193
+            },
+            {
+              "token": " stuff",
+              "probability": 0.02444004826247692
+            },
+            {
+              "token": " of",
+              "probability": 0.024416565895080566
+            },
+            {
+              "token": ".",
+              "probability": 0.022801145911216736
+            },
+            {
+              "token": " new",
+              "probability": 0.02243155427277088
+            }
+          ],
+          "llama3": [
+            {
+              "token": " milk",
+              "probability": 0.07104748487472534
+            },
+            {
+              "token": " bread",
+              "probability": 0.02961699850857258
+            },
+            {
+              "token": " groceries",
+              "probability": 0.027822595089673996
+            },
+            {
+              "token": " food",
+              "probability": 0.02166825905442238
+            },
+            {
+              "token": " things",
+              "probability": 0.01585283689200878
+            }
+          ]
+        }
+      }
+    ]
+  }
+]
