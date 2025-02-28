@@ -438,7 +438,7 @@ function App() {
       const data = getCurrentDataset();
       if (!data) return;
 
-      if (event.key === 'ArrowRight') {
+      if (event.key === 'ArrowRight' || event.key === 'PageDown') {
         // Get current sample and step
         const currentSample = data[currentSampleIndex];
         if (!currentSample || !currentSample.steps) return;
@@ -446,7 +446,7 @@ function App() {
         const currentStep = currentSample.steps[currentStepIndex];
         if (!currentStep) return;
         handleForward();
-      } else if (event.key === 'ArrowLeft') {
+      } else if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
         handleBackward();
       } else if (event.key === 'ArrowUp') {
         // Move to previous dataset
