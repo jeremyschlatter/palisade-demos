@@ -13,7 +13,8 @@
       devShell = stdenvNoCC.mkDerivation {
         name = "shell";
         buildInputs = lib.attrsets.mapAttrsToList writeShellScriptBin scripts ++ [
-
+          awscli2
+          flyctl
         ];
       };
     });
