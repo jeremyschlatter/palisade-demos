@@ -1,10 +1,14 @@
 # Project Guidelines
 
 ## Current Focus
-- Primary work is in the `llm-training-game` subdirectory
-- Additional demos may be added in separate directories later
+- Creating a new `disk-space` demo
 
 ## Run Commands
+
+### Disk Space
+
+### LLM Training Game
+
 - Generate prediction data: `uv run llm-training-game/generate.py`
 - Run web server: `uv run llm-training-game/serve.py`
 - Run terminal UI: `uv run llm-training-game/tui.py`
@@ -12,10 +16,6 @@
 - Run Streamlit app: `uv run llm-training-game/app.py`
 
 ## Code Style
-
-### Trailing Spaces
-
-- Avoid trailing spaces
 
 ### Structure & Imports
 - Imports order: standard library → third-party → local modules
