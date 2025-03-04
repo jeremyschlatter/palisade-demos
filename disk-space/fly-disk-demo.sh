@@ -10,12 +10,15 @@ set -e
 # 5. Verifies the increased disk space
 
 # Configuration
-APP_NAME="disk-space-demo"
+APP_NAME="disk-space-demo"  # This should match the app name in fly.toml
 REGION="sjc"  # Silicon Valley
 INITIAL_VOLUME_SIZE=1  # GB
 INCREASED_VOLUME_SIZE=3  # GB
 VOLUME_NAME="data"
 AUTO_CLEANUP=${AUTO_CLEANUP:-false}  # Set to true to automatically clean up resources
+SKIP_DEPLOY=${SKIP_DEPLOY:-false}  # Set to true to skip deployment if app exists
+SKIP_VOLUME=${SKIP_VOLUME:-false}  # Set to true to skip volume creation if volume exists
+DEBUG=${DEBUG:-false}  # Set to true for verbose output
 
 # Function to check for dependencies
 check_dependencies() {
@@ -99,44 +102,59 @@ check_prerequisites() {
 # Function to create and deploy the app
 setup_app() {
   echo "Starting Fly.io disk space demo..."
-
+  
+  local APP_EXISTS=false
+  
   # Check if app already exists
   if flyctl apps list | grep -q "$APP_NAME"; then
-      echo "App $APP_NAME already exists, destroying it first..."
-      flyctl apps destroy "$APP_NAME" --yes
-      # Give some time for cleanup
-      sleep 5
-  fi
-
-  # Create a volume first (before creating the app)
-  echo "Creating a ${INITIAL_VOLUME_SIZE}GB volume..."
-  # Check if volume already exists 
-  if flyctl volumes list 2>/dev/null | grep -q "$APP_NAME.*$VOLUME_NAME"; then
-      echo "Volume $VOLUME_NAME already exists, deleting it first..."
-      VOLUME_ID=$(flyctl volumes list --json | jq -r ".[] | select(.App == \"$APP_NAME\" and .Name == \"$VOLUME_NAME\") | .ID")
-      if [ -n "$VOLUME_ID" ]; then
-        echo "Destroying volume: $VOLUME_ID"
-        flyctl volumes destroy "$VOLUME_ID" --yes
-        # Give some time for cleanup
-        sleep 5
+      APP_EXISTS=true
+      
+      if [ "$SKIP_DEPLOY" = "true" ]; then
+          echo "App $APP_NAME already exists, skipping deployment..."
+      else
+          echo "App $APP_NAME already exists, destroying it first..."
+          flyctl apps destroy "$APP_NAME" --yes
+          APP_EXISTS=false
+          # Give some time for cleanup
+          sleep 5
       fi
   fi
   
-  # Launch a new Fly app with a small VM
-  echo "Creating new Fly.io app: $APP_NAME..."
-  flyctl apps create "$APP_NAME" --machines
+  # Only create the app if it doesn't exist or SKIP_DEPLOY is false
+  if [ "$APP_EXISTS" = "false" ]; then
+      # Create a volume first (before creating the app)
+      echo "Creating a ${INITIAL_VOLUME_SIZE}GB volume..."
+      # Check if volume already exists 
+      if flyctl volumes list 2>/dev/null | grep -q "$APP_NAME.*$VOLUME_NAME"; then
+          echo "Volume $VOLUME_NAME already exists, deleting it first..."
+          VOLUME_ID=$(flyctl volumes list --json | jq -r ".[] | select(.App == \"$APP_NAME\" and .Name == \"$VOLUME_NAME\") | .ID")
+          if [ -n "$VOLUME_ID" ]; then
+            echo "Destroying volume: $VOLUME_ID"
+            flyctl volumes destroy "$VOLUME_ID" --yes
+            # Give some time for cleanup
+            sleep 5
+          fi
+      fi
+      
+      # Launch a new Fly app with a small VM
+      echo "Creating new Fly.io app: $APP_NAME..."
+      flyctl apps create "$APP_NAME" --machines
 
-  echo "Creating a ${INITIAL_VOLUME_SIZE}GB volume..."
-  flyctl volumes create "$VOLUME_NAME" \
-    --app "$APP_NAME" \
-    --region "$REGION" \
-    --size "$INITIAL_VOLUME_SIZE" \
-    --yes
+      if [ "$SKIP_VOLUME" = "false" ]; then
+          echo "Creating a ${INITIAL_VOLUME_SIZE}GB volume..."
+          flyctl volumes create "$VOLUME_NAME" \
+            --app "$APP_NAME" \
+            --region "$REGION" \
+            --size "$INITIAL_VOLUME_SIZE" \
+            --yes
+      else
+          echo "SKIP_VOLUME is true, skipping volume creation..."
+      fi
 
-  # Create a simple Dockerfile for our demo
-  echo "Creating Dockerfile..."
-  mkdir -p fly-app
-  cat > fly-app/Dockerfile <<EOF
+      # Create a simple Dockerfile for our demo
+      echo "Creating Dockerfile..."
+      mkdir -p fly-app
+      cat > fly-app/Dockerfile <<EOF
 FROM alpine:latest
 RUN apk add --no-cache bash
 WORKDIR /app
@@ -145,57 +163,41 @@ RUN chmod +x entrypoint.sh
 CMD ["/app/entrypoint.sh"]
 EOF
 
-  # Create an entrypoint script that keeps the container running
-  cat > fly-app/entrypoint.sh <<EOF
+      # Create an entrypoint script that keeps the container running
+      cat > fly-app/entrypoint.sh <<EOF
 #!/bin/bash
 echo "Disk space demo container is running"
-echo "Run 'flyctl ssh console -a $APP_NAME' to connect"
+echo "Run 'flyctl ssh console' to connect"
 while true; do
   sleep 3600
 done
 EOF
+      chmod +x fly-app/entrypoint.sh
 
-  # Create fly.toml configuration with volume mount
-  cat > fly-app/fly.toml <<EOF
-app = "$APP_NAME"
+      # We'll use the existing fly.toml file
+      # This should contain the app name and mount configuration
 
-[build]
+      # Deploy the app
+      echo "Deploying the app..."
+      flyctl deploy --local-only --region "$REGION"
 
-[[mounts]]
-  source = "$VOLUME_NAME"
-  destination = "/data"
-
-[[vm]]
-  memory = "256mb"
-  cpu_kind = "shared"
-  cpus = 1
-EOF
-
-  # Deploy the app
-  echo "Deploying the app..."
-  cd fly-app
-  flyctl deploy --local-only --regions "$REGION"
-  cd ..
-
-  echo "Waiting for deployment to complete..."
-  sleep 10
+      echo "Waiting for deployment to complete..."
+      sleep 10
+  fi
 }
 
 # Function to get current machine ID
 get_machine_id() {
   # Get the machine ID, with error handling
-  MACHINE_ID=$(flyctl machines list -a "$APP_NAME" --json | jq -r '.[0].id')
+  MACHINE_ID=$(flyctl machines list --json | jq -r '.[0].id')
   
   if [ -z "$MACHINE_ID" ] || [ "$MACHINE_ID" = "null" ]; then
     echo "Error: Failed to get machine ID. Check if the app has any machines running."
-    echo "Try listing machines with: flyctl machines list -a $APP_NAME"
+    echo "Try listing machines with: flyctl machines list"
     exit 1
   fi
   
   echo "Machine ID: $MACHINE_ID"
-  
-  # Store original directory to ensure we're always in the project root
-  PROJECT_ROOT=$(pwd)
 }
 
 # Function to check disk space
@@ -217,14 +219,13 @@ check_disk_space() {
     
     # First list all filesystems to debug
     echo "Listing all mounted filesystems:"
-    flyctl ssh console -a "$APP_NAME" -C "df -h"
+    flyctl ssh console -C "df -h"
     
     # Then try to access /data specifically
     echo "Checking /data mount:"
-    # Run commands separately, ensure we're in the right directory
-    cd "$PROJECT_ROOT"
-    flyctl ssh console -a "$APP_NAME" -C "ls -la /data" 
-    if cd "$PROJECT_ROOT" && flyctl ssh console -a "$APP_NAME" -C "df -h /data"; then
+    # Run commands separately
+    flyctl ssh console -C "ls -la /data" 
+    if flyctl ssh console -C "df -h /data"; then
       SUCCESS=true
     else
       ATTEMPTS=$((ATTEMPTS+1))
@@ -246,11 +247,11 @@ check_disk_space() {
 extend_volume() {
   # First get the volume ID using awk instead of jq
   echo -e "\nGetting volume ID for $VOLUME_NAME..."
-  VOLUME_ID=$(flyctl volumes list -a "$APP_NAME" | grep "^vol_" | grep "$VOLUME_NAME" | awk '{print $1}')
+  VOLUME_ID=$(flyctl volumes list | grep "^vol_" | grep "$VOLUME_NAME" | awk '{print $1}')
   
   if [ -z "$VOLUME_ID" ]; then
     echo "Error: Failed to get volume ID for $VOLUME_NAME. Check if the volume exists."
-    echo "Try manually listing volumes with: flyctl volumes list -a $APP_NAME"
+    echo "Try manually listing volumes with: flyctl volumes list"
     exit 1
   fi
   
@@ -286,14 +287,13 @@ check_new_disk_space() {
     
     # First list all filesystems to debug
     echo "Listing all mounted filesystems:"
-    flyctl ssh console -a "$APP_NAME" -C "df -h"
+    flyctl ssh console -C "df -h"
     
     # Then try to access /data specifically
     echo "Checking /data mount after resize:"
-    # Run commands separately, ensure we're in the right directory
-    cd "$PROJECT_ROOT" 
-    flyctl ssh console -a "$APP_NAME" -C "ls -la /data"
-    if cd "$PROJECT_ROOT" && flyctl ssh console -a "$APP_NAME" -C "df -h /data"; then
+    # Run commands separately
+    flyctl ssh console -C "ls -la /data"
+    if flyctl ssh console -C "df -h /data"; then
       SUCCESS=true
     else
       ATTEMPTS=$((ATTEMPTS+1))
@@ -306,7 +306,7 @@ check_new_disk_space() {
   
   if [ "$SUCCESS" = false ]; then
     echo "Error: Failed to verify /data mount after resize."
-    echo "Try manually running: flyctl ssh console -a $APP_NAME -C \"df -h /data\""
+    echo "Try manually running: flyctl ssh console -C \"df -h /data\""
   else
     echo -e "\nDisk resize demonstration completed successfully!"
   fi
@@ -316,8 +316,9 @@ check_new_disk_space() {
     cleanup_resources
   else
     echo -e "\nTo clean up resources, run:"
-    echo "flyctl apps destroy $APP_NAME --yes"
-    echo "flyctl volumes delete $VOLUME_NAME --app $APP_NAME --yes"
+    echo "flyctl apps destroy --yes"
+    echo "flyctl volumes list # to find volumes to delete"
+    echo "flyctl volumes destroy <volume-id> --yes"
     echo "Or run this script with AUTO_CLEANUP=true to clean up automatically."
   fi
 }
@@ -328,16 +329,16 @@ cleanup_resources() {
   
   # Get volume ID for later
   local VOLUME_ID=""
-  VOLUME_ID=$(flyctl volumes list --json | jq -r ".[] | select(.App == \"$APP_NAME\" and .Name == \"$VOLUME_NAME\") | .ID")
+  VOLUME_ID=$(flyctl volumes list --json | jq -r ".[] | select(.Name == \"$VOLUME_NAME\") | .ID")
   
   # Destroy the app
-  echo "Destroying app: $APP_NAME"
-  echo "y" | flyctl apps destroy "$APP_NAME"
+  echo "Destroying app..."
+  flyctl apps destroy --yes
   
   # Check if we need to manually delete volume
   if [ -n "$VOLUME_ID" ]; then
     echo "Destroying volume: $VOLUME_ID"
-    echo "y" | flyctl volumes destroy "$VOLUME_ID"
+    flyctl volumes destroy "$VOLUME_ID" --yes
   fi
   
   # Clean up local files
@@ -358,7 +359,7 @@ cleanup_on_error() {
     cleanup_resources
   else
     echo "You may need to manually clean up resources:"
-    echo "flyctl apps destroy $APP_NAME --yes"
+    echo "flyctl apps destroy --yes"
     echo "flyctl volumes list # to find any volumes"
     echo "flyctl volumes destroy <volume-id> --yes"
   fi
@@ -370,17 +371,67 @@ cleanup_on_error() {
 trap cleanup_on_error INT TERM ERR
 
 # Parse command-line arguments
-if [ "$1" = "--cleanup" ]; then
-  AUTO_CLEANUP=true
-  shift
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --cleanup)
+      AUTO_CLEANUP=true
+      shift
+      ;;
+    --skip-deploy)
+      SKIP_DEPLOY=true
+      shift
+      ;;
+    --skip-volume)
+      SKIP_VOLUME=true
+      shift
+      ;;
+    --skip-checks)
+      SKIP_CHECKS=true
+      shift
+      ;;
+    --debug)
+      DEBUG=true
+      set -x  # Enable bash debug mode
+      shift
+      ;;
+    --help)
+      echo "Usage: $0 [options]"
+      echo "Options:"
+      echo "  --cleanup     Automatically clean up resources when done"
+      echo "  --skip-deploy Skip deployment if app already exists"
+      echo "  --skip-volume Skip volume creation if it already exists"
+      echo "  --skip-checks Skip prerequisites checks"
+      echo "  --debug       Enable verbose debug output"
+      echo "  --help        Show this help message"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"
+      echo "Use --help to see available options"
+      exit 1
+      ;;
+  esac
+done
+
+# Print configuration if debug is enabled
+if [ "$DEBUG" = "true" ]; then
+  echo "Configuration:"
+  echo "  APP_NAME: $APP_NAME"
+  echo "  REGION: $REGION"
+  echo "  VOLUME_NAME: $VOLUME_NAME"
+  echo "  INITIAL_VOLUME_SIZE: $INITIAL_VOLUME_SIZE GB"
+  echo "  INCREASED_VOLUME_SIZE: $INCREASED_VOLUME_SIZE GB"
+  echo "  AUTO_CLEANUP: $AUTO_CLEANUP"
+  echo "  SKIP_DEPLOY: $SKIP_DEPLOY"
+  echo "  SKIP_VOLUME: $SKIP_VOLUME"
 fi
 
 # Main execution
-check_prerequisites
-setup_app
-# Save the project root directory for later use
-PROJECT_ROOT=$(pwd)
+if [ "$SKIP_CHECKS" != "true" ]; then
+  check_prerequisites
+fi
 
+setup_app
 get_machine_id  # Get the machine ID for later use
 check_disk_space
 extend_volume
