@@ -743,7 +743,7 @@ function App() {
               }}>
                 <ModelPredictions
                   modelName="GPT-2"
-                  subtitle="1.5B params, 2019"
+                  subtitle="124M params, 2019"
                   predictions={currentStep.predictions.gpt2}
                   showActualToken={showActualToken}
                   actualToken={currentStep.next_actual_token}
@@ -767,7 +767,7 @@ function App() {
               }}>
                 <ModelPlaceholder
                   modelName="GPT-2"
-                  subtitle="1.5B params, 2019"
+                  subtitle="124M params, 2019"
                 />
                 <ModelPlaceholder
                   modelName="Llama 3.1"
