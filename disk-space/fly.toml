@@ -1,0 +1,16 @@
+# fly.toml app configuration file generated for disk-space-demo on 2025-03-04T12:03:56-08:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'disk-space-demo'
+primary_region = 'sjc'
+
+[[mounts]]
+  source = 'data'
+  destination = '/data'
+
+[[vm]]
+  memory = '256mb'
+  cpu_kind = 'shared'
+  cpus = 1
