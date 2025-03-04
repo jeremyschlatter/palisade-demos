@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# Simple wrapper script for running long commands and reattaching to them
+# Usage:
+#   wrapper run <command> [args...]   - Run a command in the background
+#   wrapper reattach                  - Reattach to the last command
+
+# File to store command output
+OUTPUT_FILE="/tmp/wrapper_output.log"
+PID_FILE="/tmp/wrapper_pid.txt"
+CMD_FILE="/tmp/wrapper_cmd.txt"
+ENV_FILE="/tmp/wrapper_env.txt"
+
+# Function to run a command in the background
+run_command() {
+    # Store the command for reference
+    echo "$@" > "$CMD_FILE"
+    
+    # Store current environment variables
+    env > "$ENV_FILE"
+    
+    # Clear previous output
+    echo "Starting command: $@" > "$OUTPUT_FILE"
+    
+    # Run the command in the background with nix-shell to ensure dependencies are available
+    # We're including flyctl and jq as dependencies
+    nix-shell -p jq flyctl --run "env - \$(cat "$ENV_FILE") $*" >> "$OUTPUT_FILE" 2>&1 &
+    
+    # Store the process ID
+    echo $! > "$PID_FILE"
+    
+    # Start tailing the output file
+    echo "Command is running in the background with PID $(cat $PID_FILE)"
+    echo "You can reattach to it with 'wrapper reattach'"
+    echo "Output will be displayed below (press Ctrl+C to detach but leave command running):"
+    echo "---------------------------------------------------------------------------"
+    tail -f "$OUTPUT_FILE"
+}
+
+# Function to reattach to the running command
+reattach() {
+    if [ ! -f "$PID_FILE" ]; then
+        echo "No command is currently being tracked by wrapper"
+        exit 1
+    fi
+    
+    PID=$(cat "$PID_FILE")
+    CMD=$(cat "$CMD_FILE")
+    
+    # Check if the process is still running
+    if ps -p "$PID" > /dev/null; then
+        echo "Reattaching to command: $CMD (PID: $PID)"
+        echo "Press Ctrl+C to detach but leave command running"
+        echo "---------------------------------------------------------------------------"
+        tail -f "$OUTPUT_FILE"
+    else
+        echo "Command has completed. Here's the output:"
+        echo "---------------------------------------------------------------------------"
+        cat "$OUTPUT_FILE"
+        echo "---------------------------------------------------------------------------"
+        echo "Process has ended. Cleaning up..."
+        rm -f "$PID_FILE" "$OUTPUT_FILE" "$CMD_FILE" "$ENV_FILE"
+    fi
+}
+
+# Parse command line arguments
+case "$1" in
+    run)
+        shift
+        if [ $# -eq 0 ]; then
+            echo "Error: No command specified"
+            echo "Usage: wrapper run <command> [args...]"
+            exit 1
+        fi
+        run_command "$@"
+        ;;
+    reattach)
+        reattach
+        ;;
+    *)
+        echo "Usage:"
+        echo "  wrapper run <command> [args...]   - Run a command in the background"
+        echo "  wrapper reattach                  - Reattach to the last command"
+        exit 1
+        ;;
+esac
