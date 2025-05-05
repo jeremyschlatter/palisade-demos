@@ -12,8 +12,4 @@ Nix:
 
     curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
 
-You'll have to run UV sync, once you have everything else. Not up to the usual standards!
-
-    uv sync
-
 On May 5th, 2025, John had trouble getting nix onto his path, and stopped for the time being.
