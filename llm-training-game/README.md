@@ -74,4 +74,3 @@ python tui.py --web
 - `tui.py`: Terminal-based user interface using Textual
 - `serve.py`: Helper script to run a local server
 - `prediction_data.json`: Generated prediction data (created after running `generate.py`)
-- `requirements.txt`: Python dependencies
