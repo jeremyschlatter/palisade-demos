@@ -15,6 +15,7 @@
         buildInputs = lib.attrsets.mapAttrsToList writeShellScriptBin scripts ++ [
           awscli2
           flyctl
+          uv
         ];
       };
     });
