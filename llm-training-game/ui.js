@@ -29,17 +29,21 @@ const styles = {
   }
 };
 
-// Format probability as percentage with 2 significant figures
-function formatProbability (prob) {
+// Format probability rounded to a whole percent,
+// with vertically-aligned sigfigs and ">99%" and "<1%"
+// rathern than "100%" and "0%" respectively.
+function formatProbability(prob) {
   const percentage = prob * 100;
-  if (percentage >= 10) {
-    return `${Math.round(percentage)}%`;
-  } else if (percentage >= 1) {
-    return `${percentage.toFixed(1)}%`;
-  } else {
-    return `${percentage.toFixed(2)}%`;
+  const rounded = Math.round(percentage);
+  if (rounded == 0) {
+    return '\u00A0<1%';
   }
-};
+  if (rounded == 100) {
+    return '>99%';
+  }
+  const display = `\u00A0${rounded}%`;
+  return rounded < 10 ? `\u00A0${display}` : display;
+}
 
 
 // Replace with a single data structure
@@ -332,7 +336,8 @@ function ModelPredictions({ modelName, subtitle, predictions, showActualToken, a
                 fontWeight: 'bold',
                 marginRight: '10px',
                 minWidth: '60px',
-                color: colors.secondary
+                color: colors.secondary,
+                fontFamily: 'monospace'
               }}>{formatProbability(pred.probability)}</span>
               <span style={{
                 fontFamily: 'monospace',
