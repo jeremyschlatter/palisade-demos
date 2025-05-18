@@ -12,6 +12,7 @@ import json
 import time
 from tqdm import tqdm
 import argparse
+import sys
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -156,8 +157,10 @@ def process_literal_file(file_path, single_token=False, model_completions=True):
             if single_token:
                 answer_tokens = enc.encode(answer)
                 if len(answer_tokens) != 1:
-                    print(f"Error on line {i+1}: Answer '{answer}' is not a single token (it's {len(answer_tokens)} tokens)")
-                    exit(1)
+                    print(
+                        f"Error on line {i+1}: Answer '{answer}' is not a single token (it's {len(answer_tokens)} tokens)"
+                    )
+                    sys.exit(1)
 
             valid_problems.append((prefix, answer))
 
@@ -230,7 +233,7 @@ def process_literal_file(file_path, single_token=False, model_completions=True):
         return samples
     except Exception as e:
         print(f"Error processing literal file: {e}")
-        exit(1)
+        sys.exit(1)
 
 def generate_step_data(words, prefix_size, model_completions=True):
     """Generate prediction data for a single step"""
@@ -263,7 +266,7 @@ def get_text_from_file(file_path):
         }
     except Exception as e:
         print(f"Error reading file: {e}")
-        exit(1)
+        sys.exit(1)
 
 def generate_sample_data(num_samples=10, steps_per_sample=10, min_sample_length=40, file_path=None, mode=None, single_token=False, model_completions=True):
     """Generate data for multiple samples with multiple steps each"""
@@ -335,11 +338,11 @@ def main():
     # Validate arguments
     if args.mode == 'literal' and not args.file:
         print("Error: --file argument is required when using --mode=literal")
-        exit(1)
+        sys.exit(1)
 
     if args.mode == 'file' and not args.file:
         print("Error: --file argument is required when using --mode=file")
-        exit(1)
+        sys.exit(1)
 
     # Set file path based on mode
     file_path = args.file if args.mode in ['file', 'literal'] else None
